@@ -1,0 +1,24 @@
+{
+  "name": "Enterprising Tendency App",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22-bookworm",
+  "remoteUser": "node",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/enterprising,type=bind,consistency=cached",
+  "workspaceFolder": "/workspaces/enterprising",
+  "mounts": [
+    "source=${devcontainerId}-node_modules,target=/workspaces/enterprising/node_modules,type=volume"
+  ],
+  "postCreateCommand": "sudo chown node:node node_modules && npm ci",
+  "waitFor": "postCreateCommand",
+  "forwardPorts": [5173, 4173],
+  "portsAttributes": {
+    "5173": { "label": "App (development)", "onAutoForward": "notify" },
+    "4173": { "label": "App (production preview)", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  }
+}
