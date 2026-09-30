@@ -1,6 +1,11 @@
 import type { Language } from '../lib/storage.ts';
 
 const en = {
+  activities: "Activities",
+  attributeMatch: "Attribute Match",
+  wpTitle: "Match questions to attributes",
+  wpDescription: "A future quiz for matching GET2 questions to the five entrepreneurial attributes.",
+  comingSoon: "Coming soon.",
   originalQuestion: "Original question",
   updatedElsewhere: "Test data changed in another tab. The latest saved progress has been loaded.",
   madeBy: "Made by Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas.",
@@ -171,6 +176,11 @@ const en = {
 };
 
 const el: typeof en = {
+  activities: "Δραστηριότητες",
+  attributeMatch: "Αντιστοίχιση χαρακτηριστικών",
+  wpTitle: "Αντιστοίχιση ερωτήσεων με χαρακτηριστικά",
+  wpDescription: "Ένα μελλοντικό κουίζ για την αντιστοίχιση των ερωτήσεων GET2 με τα πέντε επιχειρηματικά χαρακτηριστικά.",
+  comingSoon: "Προσεχώς.",
   originalQuestion: "Αρχική ερώτηση",
   updatedElsewhere: "Τα δεδομένα άλλαξαν σε άλλη καρτέλα. Φορτώθηκε η πιο πρόσφατη αποθηκευμένη πρόοδος.",
   madeBy: "Δημιουργήθηκε από τους Samuel Gabriel Galgóci, Juraj Budinský και Justinas Jankauskas.",

@@ -483,3 +483,13 @@ h1, h2, h3, p, label, td, th { overflow-wrap: anywhere; }
 }
 
 .original-question-number { margin: 8px 0 0; text-align: right; font-size: .75rem; color: var(--muted); }
+
+.site-header { gap: 20px; flex-wrap: wrap; }
+.page-tabs { display: flex; gap: 6px; margin-right: auto; }
+.page-tabs button { min-height: 44px; padding: 8px 12px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: .875rem; }
+.page-tabs button[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 650; }
+.wp-placeholder { min-height: 45vh; }
+@media (max-width: 600px) {
+  .page-tabs { order: 3; flex-basis: 100%; }
+  .language-switch { margin-left: auto; }
+}

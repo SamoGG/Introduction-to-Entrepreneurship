@@ -15,7 +15,7 @@ import { Results } from './components/Results.tsx';
 import { FlagIcon, Icon } from './components/Icon.tsx';
 
 type Panel = 'restart' | 'delete' | 'privacy' | 'about' | 'preferences';
-type Screen = 'welcome' | 'question' | 'review' | 'results';
+type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp';
 const answerChoices: Answer[] = ['agree', 'disagree', 'unknown'];
 
 export default function App() {
@@ -26,6 +26,7 @@ export default function App() {
   const [previous, setPrevious] = useState(initial.previous);
   const [language, setLanguage] = useState<Language>(initial.language);
   const [screen, setScreen] = useState<Screen>('welcome');
+  const get2Screen = useRef<Exclude<Screen, 'wp'>>('welcome');
   const [fromReview, setFromReview] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [changedElsewhere, setChangedElsewhere] = useState(false);
@@ -233,6 +234,14 @@ export default function App() {
         <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
         <span>{t.brand}<small>{t.brandNote}</small></span>
       </button>
+      <nav className="page-tabs" aria-label={t.activities}>
+        <button aria-current={screen !== 'wp' ? 'page' : undefined} onClick={() => {
+          if (screen === 'wp') setScreen(get2Screen.current);
+        }}>GET2 Test</button>
+        <button aria-current={screen === 'wp' ? 'page' : undefined} onClick={() => {
+          if (screen !== 'wp') { get2Screen.current = screen; setScreen('wp'); }
+        }}>{t.attributeMatch}</button>
+      </nav>
       <div className="language-switch" role="group" aria-label={t.language}>
         <button lang="en" aria-label="English" aria-pressed={language === 'en'} onClick={() => switchLanguage('en')}><FlagIcon language="en" /><span>EN</span></button>
         <span aria-hidden="true" />
@@ -242,6 +251,14 @@ export default function App() {
 
     <main id="main" className={`main-content ${screen}`}>
       {storageError && <p className="storage-notice" role="alert">{t.storageError}</p>}
+      {screen === 'wp' && <section className="wp-placeholder">
+        <header className="page-heading">
+          <p className="eyebrow">{t.attributeMatch}</p>
+          <h1 tabIndex={-1} data-page-heading>{t.wpTitle}</h1>
+          <p>{t.wpDescription}</p>
+        </header>
+        <p className="small-note">{t.comingSoon}</p>
+      </section>}
       {screen === 'welcome' && <>
         <section className="welcome-hero">
           <p className="eyebrow"><span aria-hidden="true" className="tiny-line" />{t.eyebrow}</p>
