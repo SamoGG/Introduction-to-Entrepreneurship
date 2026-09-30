@@ -25,8 +25,11 @@ test('built site works at a GitHub Pages repository path with no external reques
     await page.goto(origin + prefix);
     await expect(page.getByRole('button', { name: 'Start Test', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Start Test', exact: true }).click();
+    await page.evaluate(() => navigator.locks.request('get2-test-data', () => {}));
     await page.keyboard.press('1');
+    await page.evaluate(() => navigator.locks.request('get2-test-data', () => {}));
     await page.keyboard.press('Enter');
+    await page.evaluate(() => navigator.locks.request('get2-test-data', () => {}));
     const before = await page.evaluate(() => localStorage.getItem('get2-active-session'));
     await page.reload();
     await page.getByRole('button', { name: 'Continue Test' }).click();

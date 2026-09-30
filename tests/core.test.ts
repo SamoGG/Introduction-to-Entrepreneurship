@@ -258,3 +258,27 @@ test('prorated result version 2 is rejected even when full-coverage scores happe
     assert.ok(validResult(result));
   }
 });
+
+test('runtime scoring rejects invalid values, extra IDs and inherited completion', () => {
+  for (const value of ['invalid', '', null, true, 1, [], {}]) {
+    const answers = answersWith(earnsPoint);
+    (answers as Record<number, unknown>)[1] = value;
+    assert.throws(() => calculateResult(answers), /valid response/);
+    assert.throws(() => calculateOverallScore(answers), /Invalid/);
+    assert.throws(() => scoreAnswer(1, value as Answer), /Invalid/);
+  }
+  assert.throws(() => calculateResult({ ...answersWith(earnsPoint), 55: 'agree' }), /valid response/);
+  assert.throws(() => calculateResult(Object.create(answersWith(earnsPoint))), /valid response/);
+  assert.throws(() => calculateResult(answersWith(earnsPoint), 'invalid'), /completion date/);
+});
+
+test('saved result evidence must reproduce every score, coverage and classification', () => {
+  const result = calculateResult(answersWith(earnsPoint));
+  assert.ok(validResult(result));
+  assert.equal(validResult({ ...result, answers: answersWith(() => 'unknown') }), false);
+  assert.equal(validResult({ ...result, version: 3 }), false);
+  const { answers: _, ...withoutEvidence } = result;
+  assert.equal(validResult(withoutEvidence), false);
+  result.answers[1] = 'unknown';
+  assert.equal(validResult(result), false);
+});

@@ -25,7 +25,9 @@ const currentKey = 'get2-current-result';
 const previousKey = 'get2-previous-result';
 const winning = (id: number): Answer => id % 2 === 0 ? 'agree' : 'disagree';
 const losing = (id: number): Answer => id % 2 === 0 ? 'disagree' : 'agree';
-const readSession = (page: Page): Promise<TestSession> => page.evaluate(key => JSON.parse(localStorage.getItem(key)!), sessionKey);
+// Writes are serialized across tabs; wait for queued writes before the next interaction.
+const settleWrites = (page: Page) => page.evaluate(() => navigator.locks.request('get2-test-data', () => {}));
+const readSession = (page: Page): Promise<TestSession> => page.evaluate(key => navigator.locks.request('get2-test-data', () => JSON.parse(localStorage.getItem(key)!)), sessionKey);
 
 async function seed(page: Page, answers: Answers, completed = false, language = 'en') {
   await page.goto('/');
@@ -47,6 +49,7 @@ test('welcome, keyboard, EN/EL, persistence, review navigation and restart', asy
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Entrepreneurial Tendency Test');
   await page.screenshot({ path: 'test-results/welcome-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
+  await settleWrites(page);
   const initial = await readSession(page);
   const firstQuestion = questions.find(question => question.id === initial.questionOrder[0])!;
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(firstQuestion.english);
@@ -54,17 +57,23 @@ test('welcome, keyboard, EN/EL, persistence, review navigation and restart', asy
   expect(new Set(initial.questionOrder).size).toBe(54);
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeDisabled();
   await page.keyboard.press('ArrowRight');
+  await settleWrites(page);
   expect((await readSession(page)).currentIndex).toBe(0);
   await page.keyboard.press('1');
+  await settleWrites(page);
   await expect(page.getByRole('radio', { name: 'Agree', exact: true })).toBeChecked();
   expect((await readSession(page)).answers[initial.questionOrder[0]]).toBe('agree');
   expect((await readSession(page)).currentIndex).toBe(0);
   await page.keyboard.press('Enter');
+  await settleWrites(page);
   expect((await readSession(page)).currentIndex).toBe(1);
   await page.keyboard.press('3');
+  await settleWrites(page);
   await page.keyboard.press('ArrowLeft');
+  await settleWrites(page);
   await expect(page.getByRole('radio', { name: 'Agree', exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Ελληνικά' }).click();
+  await settleWrites(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'el');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(firstQuestion.greek);
   await expect(page.getByRole('radio', { name: 'Συμφωνώ' })).toBeChecked();
@@ -72,22 +81,32 @@ test('welcome, keyboard, EN/EL, persistence, review navigation and restart', asy
   expect(greek.questionOrder).toEqual(initial.questionOrder);
   await page.reload();
   await page.getByRole('button', { name: 'Συνέχεια Τεστ', exact: true }).click();
+  await settleWrites(page);
   expect(await readSession(page)).toEqual(greek);
   await page.getByRole('button', { name: 'Επισκόπηση απαντήσεων' }).click();
+  await settleWrites(page);
   await expect(page.locator('.question-grid button')).toHaveCount(54);
   await expect(page.getByRole('button', { name: 'Υπολογισμός Αποτελεσμάτων' })).toBeDisabled();
   await page.getByRole('button', { name: 'English' }).click();
+  await settleWrites(page);
   await page.getByRole('button', { name: 'Question 2: I don’t know', exact: true }).click();
+  await settleWrites(page);
   await expect(page.getByRole('radio', { name: 'I don’t know' })).toBeChecked();
-  await page.getByRole('radio', { name: 'Disagree' }).check();
+  await page.getByRole('radio', { name: 'Disagree' }).click();
+  await settleWrites(page);
   await page.getByRole('button', { name: 'Back to Review' }).last().click();
+  await settleWrites(page);
   await expect(page.getByRole('button', { name: 'Question 2: Disagree', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Restart Test', exact: true }).click();
+  await settleWrites(page);
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
+  await settleWrites(page);
   expect((await readSession(page)).questionOrder).toEqual(initial.questionOrder);
   await page.getByRole('button', { name: 'Restart Test', exact: true }).click();
+  await settleWrites(page);
   await page.getByRole('dialog').getByRole('button', { name: 'Restart Test' }).click();
+  await settleWrites(page);
   const restarted = await readSession(page);
   expect(restarted.questionOrder).not.toEqual(initial.questionOrder);
   expect(restarted.answers).toEqual({});
@@ -99,15 +118,19 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/');
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
+  await settleWrites(page);
   const first = await readSession(page);
   for (let index = 0; index < 54; index++) {
     const id = first.questionOrder[index];
     const answer = id <= 30 ? winning(id) : id <= 40 ? losing(id) : 'unknown';
-    await page.getByRole('radio', { name: answer === 'agree' ? 'Agree' : answer === 'disagree' ? 'Disagree' : 'I don’t know', exact: true }).check();
+    await page.getByRole('radio', { name: answer === 'agree' ? 'Agree' : answer === 'disagree' ? 'Disagree' : 'I don’t know', exact: true }).click();
+    await settleWrites(page);
     await page.getByRole('button', { name: index === 53 ? 'Review answers' : 'Next', exact: true }).last().click();
+    await settleWrites(page);
   }
   await expect(page.getByRole('button', { name: 'Calculate Results' })).toBeEnabled();
   await page.getByRole('button', { name: 'Calculate Results' }).click();
+  await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await expect(page.locator('.overall-main .classification')).toHaveText('Medium');
   await expect(page.locator('.coverage-heading strong')).toHaveText('74%');
@@ -115,18 +138,24 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
   await expect(page.locator('.overall-coverage')).toContainText('reduced response coverage');
   expect(await page.locator('details[open]').count()).toBe(0);
   await page.locator('.overall-calculation summary').click();
+  await settleWrites(page);
   await expect(page.locator('.overall-calculation')).toContainText('40 / 54 = 74.1%');
   await page.getByRole('button', { name: 'Copy Results', exact: true }).click();
+  await settleWrites(page);
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied).toContain('Overall\n30 / 54 — Medium');
   expect(copied).toContain('Response coverage: 74%');
   await page.getByRole('button', { name: 'Ελληνικά' }).click();
+  await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await page.getByRole('button', { name: 'Αντιγραφή Αποτελεσμάτων', exact: true }).click();
+  await settleWrites(page);
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Συνολικά\n30 / 54 — Μέτρια');
   await page.getByRole('button', { name: 'English' }).click();
+  await settleWrites(page);
   await page.evaluate(() => { window.print = () => { document.body.dataset.printed = 'yes'; }; });
   await page.getByRole('button', { name: 'Download Results', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes');
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.site-header')).toBeHidden();
@@ -139,27 +168,36 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
   await page.reload();
   await expect(page.getByRole('button', { name: 'View Results', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'View Results', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await page.getByRole('button', { name: 'Take Test Again' }).click();
+  await settleWrites(page);
   const retake = await readSession(page);
   expect(retake.questionOrder).not.toEqual(first.questionOrder);
   expect(retake.answers).toEqual({});
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(30);
   // A restart during a retake must preserve the last completed comparison.
   await page.getByRole('button', { name: 'Restart Test', exact: true }).click();
+  await settleWrites(page);
   await page.getByRole('dialog').getByRole('button', { name: 'Restart Test' }).click();
+  await settleWrites(page);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(30);
   const second = await readSession(page);
   for (let index = 0; index < 54; index++) {
-    await page.getByRole('radio', { name: winning(second.questionOrder[index]) === 'agree' ? 'Agree' : 'Disagree', exact: true }).check();
+    await page.getByRole('radio', { name: winning(second.questionOrder[index]) === 'agree' ? 'Agree' : 'Disagree', exact: true }).click();
+    await settleWrites(page);
     await page.getByRole('button', { name: index === 53 ? 'Review answers' : 'Next', exact: true }).last().click();
+    await settleWrites(page);
   }
   await page.getByRole('button', { name: 'Calculate Results' }).click();
+  await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('54/ 54');
   await page.locator('.comparison summary').click();
+  await settleWrites(page);
   await expect(page.locator('.comparison tbody tr').first()).toContainText('+24');
   expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual(['get2-active-session', 'get2-current-result', 'get2-language', 'get2-previous-result']);
   await page.getByRole('button', { name: 'Take Test Again' }).click();
+  await settleWrites(page);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(54);
   expect(await page.evaluate(key => localStorage.getItem(key), currentKey)).toBeNull();
 });
@@ -167,9 +205,12 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
 test('all unknowns finish with N/A, zero coverage, safe calculations and copy fallback', async ({ page }) => {
   await seed(page, Object.fromEntries(questions.map(q => [q.id, 'unknown'])));
   await page.getByRole('button', { name: 'Continue Test' }).click();
+  await settleWrites(page);
   await page.getByRole('button', { name: 'Review answers', exact: true }).first().click();
+  await settleWrites(page);
   await expect(page.getByRole('button', { name: 'Calculate Results' })).toBeEnabled();
   await page.getByRole('button', { name: 'Calculate Results' }).click();
+  await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('0/ 54');
   await expect(page.locator('.coverage-heading strong')).toHaveText('0%');
   await expect(page.locator('.dimension-score strong')).toHaveText(['0', '0', '0', '0', '0']);
@@ -178,6 +219,7 @@ test('all unknowns finish with N/A, zero coverage, safe calculations and copy fa
   await expect(page.locator('body')).not.toContainText('Infinity');
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('Denied')) }, configurable: true }));
   await page.getByRole('button', { name: 'Copy Results' }).click();
+  await settleWrites(page);
   await expect(page.getByRole('textbox', { name: 'Result summary' })).toContainText('Overall\n0 / 54 — N/A');
 });
 
@@ -189,11 +231,14 @@ test('mobile layouts in both languages fit 320px and 390px screens', async ({ pa
       await page.evaluate(() => localStorage.clear());
       await page.reload();
       await page.getByRole('button', { name: language === 'en' ? 'English' : 'Ελληνικά' }).click();
+      await settleWrites(page);
       await expectFits(page);
       if (width === 390 && language === 'en') await page.screenshot({ path: 'test-results/welcome-mobile.png', fullPage: true });
       await page.getByRole('button', { name: language === 'en' ? 'Start Test' : 'Έναρξη Τεστ', exact: true }).click();
+      await settleWrites(page);
       await expectFits(page);
       await page.getByRole('button', { name: language === 'en' ? 'Review answers' : 'Επισκόπηση απαντήσεων', exact: true }).first().click();
+      await settleWrites(page);
       await expectFits(page);
       const answers = Object.fromEntries(questions.map(q => [q.id, q.id % 3 === 0 ? 'unknown' : winning(q.id)]));
       await seed(page, answers, true, language);
@@ -223,8 +268,10 @@ test('corrupt local data and blocked storage do not crash the application', asyn
   await expect(page.getByRole('button', { name: 'Start Test', exact: true })).toBeVisible();
   await page.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('Denied', 'SecurityError'); }; });
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
+  await settleWrites(page);
   await expect(page.getByRole('alert')).toContainText('could not save');
-  await page.getByRole('radio', { name: 'Agree', exact: true }).check();
+  await page.getByRole('radio', { name: 'Agree', exact: true }).click();
+  await settleWrites(page);
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
 });
 
@@ -235,6 +282,7 @@ test('first-visit language, saved preferences, modal focus and safe deletion', a
   await expect(page.locator('html')).toHaveAttribute('lang', 'el');
   expect(await page.locator('html').evaluate(node => getComputedStyle(node).colorScheme)).toBe('dark');
   await page.getByRole('button', { name: 'English' }).click();
+  await settleWrites(page);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const preferencesButton = page.getByRole('button', { name: 'Appearance & accessibility' });
@@ -243,36 +291,48 @@ test('first-visit language, saved preferences, modal focus and safe deletion', a
   await expect(modal).toBeVisible();
   await expect(modal.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
+  await settleWrites(page);
   expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true);
-  await modal.getByRole('radio', { name: 'Light', exact: true }).check();
-  await modal.getByRole('checkbox', { name: 'Larger text' }).check();
-  await modal.getByRole('checkbox', { name: 'High contrast' }).check();
-  await modal.getByRole('checkbox', { name: 'Reduce motion' }).check();
+  await modal.getByRole('radio', { name: 'Light', exact: true }).click();
+  await modal.getByRole('checkbox', { name: 'Larger text' }).click();
+  await modal.getByRole('checkbox', { name: 'High contrast' }).click();
+  await modal.getByRole('checkbox', { name: 'Reduce motion' }).click();
   await page.keyboard.press('Escape');
+  await settleWrites(page);
   await expect(preferencesButton).toBeFocused();
   expect(await page.locator('html').evaluate(node => getComputedStyle(node).colorScheme)).toBe('light');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-larger-text', 'true');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
+  await settleWrites(page);
   await page.keyboard.press('Enter');
+  await settleWrites(page);
   expect((await readSession(page)).currentIndex).toBe(0);
   await page.keyboard.press('1');
+  await settleWrites(page);
   await expect(page.locator('.answer-feedback')).toHaveText('Answer saved');
   await page.keyboard.press('2');
+  await settleWrites(page);
   await expect(page.locator('.answer-feedback')).toHaveText('Answer updated');
   await page.keyboard.press('Enter');
+  await settleWrites(page);
   expect((await readSession(page)).currentIndex).toBe(1);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
   // Keys on an unrelated button do not change an answer or advance.
   await page.getByRole('button', { name: 'English' }).focus();
   await page.keyboard.press('3');
+  await settleWrites(page);
   expect(Object.keys((await readSession(page)).answers)).toHaveLength(1);
   await page.getByRole('button', { name: 'Delete Saved Data' }).click();
+  await settleWrites(page);
   await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await settleWrites(page);
   expect(await page.evaluate(() => localStorage.getItem('get2-active-session'))).not.toBeNull();
   await page.getByRole('button', { name: 'Delete Saved Data' }).click();
+  await settleWrites(page);
   await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+  await settleWrites(page);
   await expect(page.getByRole('button', { name: 'Start Test', exact: true })).toBeVisible();
   await expect(page.getByRole('status')).toHaveText('Saved test data deleted.');
   expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual(['get2-language', 'get2-preferences']);
@@ -283,13 +343,18 @@ test('first-visit language, saved preferences, modal focus and safe deletion', a
 test('review filters retain display numbering and Enter returns to review', async ({ page }) => {
   await seed(page, { 54: 'unknown', 53: 'agree' });
   await page.getByRole('button', { name: 'Continue Test' }).click();
+  await settleWrites(page);
   await page.getByRole('button', { name: 'Review answers', exact: true }).click();
+  await settleWrites(page);
   const filters = page.getByRole('group', { name: 'Filter questions' });
   await filters.getByRole('button', { name: 'I don’t know 1' }).click();
   await expect(page.locator('.question-grid button')).toHaveCount(1);
   await page.getByRole('button', { name: 'Question 1: I don’t know' }).click();
-  await page.getByRole('radio', { name: 'Agree', exact: true }).check();
+  await settleWrites(page);
+  await page.getByRole('radio', { name: 'Agree', exact: true }).click();
+  await settleWrites(page);
   await page.keyboard.press('Enter');
+  await settleWrites(page);
   await expect(page.locator('.empty-filter')).toBeVisible();
   await filters.getByRole('button', { name: 'Unanswered 52' }).click();
   await expect(page.locator('.question-grid button')).toHaveCount(52);
@@ -302,8 +367,11 @@ test('profile, white printing in dark mode, and Retake preserves preferences', a
   const answers = Object.fromEntries(questions.map(q => [q.id, winning(q.id)]));
   await seed(page, answers, true);
   await page.getByRole('button', { name: 'Appearance & accessibility' }).click();
-  await page.getByRole('radio', { name: 'Dark', exact: true }).check();
+  await settleWrites(page);
+  await page.getByRole('radio', { name: 'Dark', exact: true }).click();
+  await settleWrites(page);
   await page.keyboard.press('Escape');
+  await settleWrites(page);
   await expect(page.getByRole('img', { name: /Your profile at a glance:/ })).toBeVisible();
   await expect(page.locator('.profile-summary')).toContainText('similar percentages');
   await page.screenshot({ path: 'test-results/results-dark.png', fullPage: true });
@@ -315,6 +383,7 @@ test('profile, white printing in dark mode, and Retake preserves preferences', a
   await page.emulateMedia({ media: 'screen' });
   await expect(page.getByRole('button', { name: 'Delete Saved Data' })).toHaveCount(1);
   await page.getByRole('button', { name: 'Take Test Again', exact: true }).click();
+  await settleWrites(page);
   expect(await page.evaluate(() => localStorage.getItem('get2-current-result'))).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('get2-previous-result'))).not.toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('get2-active-session'))).not.toBeNull();
@@ -328,11 +397,16 @@ test('requested widths, themes, large Greek text and 200 percent zoom remain usa
     await page.setViewportSize({ width, height: 900 });
     for (const theme of ['light', 'dark']) {
       await page.getByRole('button', { name: 'Εμφάνιση και προσβασιμότητα' }).click();
-      await page.getByRole('radio', { name: theme === 'light' ? 'Φωτεινό' : 'Σκοτεινό', exact: true }).check();
-      await page.getByRole('checkbox', { name: 'Μεγαλύτερο κείμενο' }).check();
-      await page.getByRole('checkbox', { name: 'Υψηλή αντίθεση' }).check();
+      await settleWrites(page);
+      await page.getByRole('radio', { name: theme === 'light' ? 'Φωτεινό' : 'Σκοτεινό', exact: true }).click();
+      await settleWrites(page);
+      await page.getByRole('checkbox', { name: 'Μεγαλύτερο κείμενο' }).click();
+      await settleWrites(page);
+      await page.getByRole('checkbox', { name: 'Υψηλή αντίθεση' }).click();
+      await settleWrites(page);
       await expectFits(page);
       await page.keyboard.press('Escape');
+      await settleWrites(page);
       await expectFits(page);
     }
   }
@@ -341,8 +415,10 @@ test('requested widths, themes, large Greek text and 200 percent zoom remain usa
   await expectFits(page);
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   await page.getByRole('button', { name: 'Επανάληψη Τεστ' }).click();
+  await settleWrites(page);
   await page.setViewportSize({ width: 320, height: 700 });
-  await page.getByRole('radio', { name: 'Συμφωνώ', exact: true }).check();
+  await page.getByRole('radio', { name: 'Συμφωνώ', exact: true }).click();
+  await settleWrites(page);
   await expectFits(page);
   const navigation = page.locator('.question-navigation');
   expect(await navigation.evaluate(node => getComputedStyle(node).position)).toBe('sticky');
@@ -358,9 +434,13 @@ test('reopening always starts at welcome and preserves unfinished answers and co
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Start Test', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
+  await settleWrites(page);
   await page.keyboard.press('1');
+  await settleWrites(page);
   await page.keyboard.press('Enter');
+  await settleWrites(page);
   await page.keyboard.press('3');
+  await settleWrites(page);
   const saved = await readSession(page);
   await page.close();
   const reopened = await context.newPage();
@@ -369,13 +449,16 @@ test('reopening always starts at welcome and preserves unfinished answers and co
   await expect(reopened.locator('#question-text')).toHaveCount(0);
   expect(await readSession(reopened)).toEqual(saved);
   await reopened.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(reopened);
   await expect(reopened.getByRole('radio', { name: 'I don’t know', exact: true })).toBeChecked();
-  await reopened.getByRole('radio', { name: 'Disagree', exact: true }).check();
+  await reopened.getByRole('radio', { name: 'Disagree', exact: true }).click();
+  await settleWrites(reopened);
   const updated = await readSession(reopened);
   await reopened.reload();
   await expect(reopened.getByRole('button', { name: 'Continue Test', exact: true })).toBeVisible();
   expect(await readSession(reopened)).toEqual(updated);
   await reopened.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(reopened);
   await expect(reopened.getByRole('radio', { name: 'Disagree', exact: true })).toBeChecked();
   await seed(reopened, Object.fromEntries(questions.map(q => [q.id, winning(q.id)])), true, 'el');
   const completed = await readSession(reopened);
@@ -389,6 +472,7 @@ test('reopening always starts at welcome and preserves unfinished answers and co
   expect(await readSession(returning)).toEqual(completed);
   expect(await returning.evaluate(key => localStorage.getItem(key), currentKey)).toBe(result);
   await returning.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true }).click();
+  await settleWrites(returning);
   await expect(returning.locator('.overall-score')).toHaveText('54/ 54');
   await returning.reload();
   await expect(returning.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true })).toBeVisible();
@@ -400,13 +484,16 @@ test('printing failures remain recoverable in both languages', async ({ page }) 
   await seed(page, Object.fromEntries(questions.map(q => [q.id, winning(q.id)])), true);
   await page.evaluate(() => { window.print = () => { throw new Error('Unavailable'); }; });
   await page.getByRole('button', { name: 'Download Results', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('.print-status')).toContainText('Printing is unavailable');
   await expect(page.getByRole('status')).toContainText('Printing is unavailable');
   await page.getByRole('button', { name: 'Ελληνικά' }).click();
+  await settleWrites(page);
   await expect(page.locator('.print-status')).toContainText('Η εκτύπωση δεν είναι διαθέσιμη');
   await expect(page.locator('.overall-score')).toHaveText('54/ 54');
   await page.evaluate(() => { window.print = () => {}; });
   await page.getByRole('button', { name: 'Λήψη Αποτελεσμάτων', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('.print-status')).toBeHidden();
   expect(errors).toEqual([]);
 });
@@ -417,14 +504,20 @@ test('unavailable storage getters and failed deletion preserve a usable session'
   }));
   await page.goto('/');
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
-  await page.getByRole('radio', { name: 'Agree', exact: true }).check();
+  await settleWrites(page);
+  await page.getByRole('radio', { name: 'Agree', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('.answer-feedback')).toContainText('saving is unavailable');
   await page.getByRole('button', { name: 'Delete Saved Data' }).click();
+  await settleWrites(page);
   await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+  await settleWrites(page);
   await expect(page.getByRole('dialog').getByRole('alert')).toContainText('could not be deleted');
   await page.keyboard.press('Escape');
+  await settleWrites(page);
   await expect(page.getByRole('radio', { name: 'Agree', exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('#question-position')).toHaveText('Question 2 of 54');
 });
 
@@ -443,6 +536,7 @@ test('three positives and nine unknowns show 3/12 in screen, copy and print', as
   await expect(dimension.locator('.calculation')).toContainText('3 / 12 = 25%');
   await expect(dimension.locator('.calculation')).not.toContainText('×');
   await page.getByRole('button', { name: 'Copy Results', exact: true }).click();
+  await settleWrites(page);
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Creative Tendency\n3 / 12 — Low\nResponse coverage: 25% (3 / 12)\nUnknown responses: 9');
   await page.emulateMedia({ media: 'print' });
   await expect(dimension.locator('.dimension-score')).toBeVisible();
@@ -468,14 +562,112 @@ test('old prorated results cannot enter retake comparison; answers and preferenc
   const preferences = await page.evaluate(() => localStorage.getItem('get2-preferences'));
   await page.reload();
   await page.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true }).click();
+  await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('3/ 54');
   await expect(page.locator('.comparison')).toHaveCount(0);
   expect((await readSession(page)).answers).toEqual(answers);
   expect(await page.evaluate(() => localStorage.getItem('get2-preferences'))).toBe(preferences);
   await page.getByRole('button', { name: 'English' }).click();
+  await settleWrites(page);
   await page.getByRole('button', { name: 'Take Test Again' }).click();
+  await settleWrites(page);
   const previous = await page.evaluate(() => JSON.parse(localStorage.getItem('get2-previous-result')!));
-  expect(previous.version).toBe(3);
+  expect(previous.version).toBe(4);
   expect(previous.overall.finalScore).toBe(3);
   expect(previous.overall.adjusted).toBeUndefined();
+});
+
+test('current results derive from the completed session and forged comparison evidence is rejected', async ({ page }) => {
+  const unknown: Answers = Object.fromEntries(questions.map(q => [q.id, 'unknown']));
+  await seed(page, unknown, true);
+  const fabricated = calculateResult(Object.fromEntries(questions.map(q => [q.id, winning(q.id)])));
+  await page.evaluate(result => {
+    localStorage.setItem('get2-current-result', JSON.stringify(result));
+    localStorage.setItem('get2-previous-result', JSON.stringify({ ...result, answers: Object.fromEntries(Object.keys(result.answers).map(id => [id, 'unknown'])) }));
+  }, fabricated);
+  await page.reload();
+  await page.getByRole('button', { name: 'View Results', exact: true }).click();
+  await settleWrites(page);
+  await expect(page.locator('.overall-score')).toHaveText('0/ 54');
+  await expect(page.locator('.comparison')).toHaveCount(0);
+  await page.evaluate(() => {
+    const session = JSON.parse(localStorage.getItem('get2-active-session')!);
+    session.completed = false;
+    delete session.answers[1];
+    localStorage.setItem('get2-active-session', JSON.stringify(session));
+  });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'View Results', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(page);
+  await page.getByRole('button', { name: 'Review answers', exact: true }).first().click();
+  await settleWrites(page);
+  await expect(page.getByRole('button', { name: 'Calculate Results', exact: true })).toBeDisabled();
+});
+
+test('original question number follows permanent IDs through navigation and language changes', async ({ page }) => {
+  await seed(page, {});
+  await page.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(page);
+  await expect(page.locator('.original-question-number')).toHaveText('Original question 54');
+  await page.getByRole('radio', { name: 'Agree', exact: true }).click();
+  await settleWrites(page);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await settleWrites(page);
+  await expect(page.locator('.original-question-number')).toHaveText('Original question 53');
+  await page.getByRole('button', { name: 'Ελληνικά', exact: true }).click();
+  await settleWrites(page);
+  await expect(page.locator('.original-question-number')).toHaveText('Αρχική ερώτηση 53');
+});
+
+test('another tab updates answers without allowing stale progress or deleted data to return', async ({ page, context }) => {
+  await seed(page, {});
+  await page.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(page);
+  const other = await context.newPage();
+  await other.goto('/');
+  await other.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(other);
+  await page.getByRole('radio', { name: 'Agree', exact: true }).click();
+  await settleWrites(page);
+  await expect(other.getByRole('button', { name: 'Continue Test', exact: true })).toBeVisible();
+  await other.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  await settleWrites(other);
+  await expect(other.getByRole('radio', { name: 'Agree', exact: true })).toBeChecked();
+  await other.getByRole('button', { name: 'Next', exact: true }).click();
+  await settleWrites(other);
+  await other.getByRole('radio', { name: 'Disagree', exact: true }).click();
+  await settleWrites(other);
+  expect((await readSession(other)).answers).toEqual({ 54: 'agree', 53: 'disagree' });
+  await expect(page.getByRole('button', { name: 'Continue Test', exact: true })).toBeVisible();
+  await other.getByRole('button', { name: 'Delete Saved Data', exact: true }).click();
+  await settleWrites(other);
+  await other.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+  await settleWrites(other);
+  await expect(page.getByRole('button', { name: 'Start Test', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('get2-active-session'))).toBeNull();
+  await other.close();
+});
+
+test('simultaneous stale writes serialize and cannot overwrite the winning transaction', async ({ page, context }) => {
+  await seed(page, {});
+  await page.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  const other = await context.newPage();
+  await other.goto('/');
+  await other.getByRole('button', { name: 'Continue Test', exact: true }).click();
+  // Hold the same lock until both tabs have queued conflicting answers.
+  await page.evaluate(() => new Promise<void>(ready => {
+    void navigator.locks.request('get2-test-data', () => new Promise<void>(release => {
+      Object.assign(window, { releaseTestLock: release });
+      ready();
+    }));
+  }));
+  await page.getByRole('radio', { name: 'Agree', exact: true }).click();
+  await other.getByRole('radio', { name: 'Disagree', exact: true }).click();
+  await page.evaluate(() => (window as unknown as { releaseTestLock: () => void }).releaseTestLock());
+  await settleWrites(page);
+  await settleWrites(other);
+  expect((await readSession(page)).answers).toEqual({ 54: 'agree' });
+  await expect(other.getByRole('button', { name: 'Continue Test', exact: true })).toBeVisible();
+  await other.close();
 });

@@ -1,6 +1,9 @@
 import type { Language } from '../lib/storage.ts';
 
 const en = {
+  originalQuestion: "Original question",
+  updatedElsewhere: "Test data changed in another tab. The latest saved progress has been loaded.",
+  madeBy: "Made by Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas.",
   preferences: "Appearance & accessibility",
   theme: "Theme",
   system: "System",
@@ -168,6 +171,9 @@ const en = {
 };
 
 const el: typeof en = {
+  originalQuestion: "Αρχική ερώτηση",
+  updatedElsewhere: "Τα δεδομένα άλλαξαν σε άλλη καρτέλα. Φορτώθηκε η πιο πρόσφατη αποθηκευμένη πρόοδος.",
+  madeBy: "Δημιουργήθηκε από τους Samuel Gabriel Galgóci, Juraj Budinský και Justinas Jankauskas.",
   preferences: "Εμφάνιση και προσβασιμότητα",
   theme: "Θέμα",
   system: "Σύστημα",

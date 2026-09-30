@@ -1,5 +1,7 @@
 # Entrepreneurial Tendency Test
 
+Made by **Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas**.
+
 A small, static React + TypeScript application in English and Greek. Responses and the immediately previous result stay in localStorage on the participant’s device. No backend, accounts, cookies, analytics, external fonts, or runtime content requests.
 
 ## Run
@@ -67,7 +69,7 @@ All 54 English statements match the canonical wording supplied by the applicatio
 
 All 54 objects are written directly in `src/data/questions.ts`; each pairs both languages with a permanent ID and category. The English text is the source of truth. Switching language never changes question identity, answers, order, categories, or scoring.
 
-Session version 2 identifies the completed questionnaire; result version 3 identifies coverage-weighted scoring. Earlier version 1 attempts used placeholder statements and are not resumed or compared with these results. The saved language preference is retained.
+Session version 2 identifies the completed questionnaire; result version 4 identifies coverage-weighted scoring with a saved answer snapshot. Earlier version 1 attempts used placeholder statements and are not resumed or compared with these results. The saved language preference is retained.
 
 ## Scoring and storage
 
@@ -76,7 +78,7 @@ Session version 2 identifies the completed questionnaire; result version 3 ident
 - Classification uses the final score: 12-item dimensions have Medium/High thresholds of 7/10, Autonomy 3/4, and overall 27/44. All unknown yields 0 / maximum, 0% coverage, and N/A classification. Any nonzero coverage uses the unchanged thresholds; the score is always visible. Overall points equal the sum of dimension points.
 - Coverage measures definite Agree/Disagree responses, not statistical confidence. Thresholds for coverage notices are 60% and 80%.
 - Fisher–Yates with small safe swaps prevents triples from the same category. Order is generated only when starting or restarting, then saved with answers keyed by permanent ID.
-- The test/language storage keys are `get2-active-session`, `get2-current-result`, `get2-previous-result`, and `get2-language`. Display preferences use `get2-preferences` (version 1). Corrupt or incompatible stored records are ignored. Old version 2 prorated results are rejected, including previous results, so incompatible scores cannot be compared. Valid version 2 test sessions remain compatible: unfinished answers resume unchanged, and completed session answers are recalculated under version 3 when no compatible current result exists. Language, theme, and accessibility preferences are preserved. If saving is blocked, the app shows a warning and remains usable in memory. Every fresh page load opens the welcome screen; Continue Test restores saved answers and position, and View Results opens a completed test.
+- The test/language storage keys are `get2-active-session`, `get2-current-result`, `get2-previous-result`, and `get2-language`. Display preferences use `get2-preferences` (version 1). Corrupt or incompatible stored records are ignored. Version 2 prorated results and version 3 results without answer evidence are rejected as comparison records. Valid version 2 test sessions remain compatible: unfinished answers resume unchanged, and completed session answers are recalculated under version 4 when no compatible current result exists. Language, theme, and accessibility preferences are preserved. If saving is blocked, the app shows a warning and remains usable in memory. Every fresh page load opens the welcome screen; Continue Test restores saved answers and position, and View Results opens a completed test.
 - Results can be copied in the selected language or printed/saved as PDF through the browser. Clipboard failure offers a selectable summary; print failure shows a localized message. Only the current and immediately previous completed result are retained.
 
 ## Verification
@@ -94,7 +96,7 @@ Keyboard controls: 1/2/3 select a response; Enter confirms the currently selecte
 
 ## Accessibility and privacy controls
 
-The footer offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language defaults to Greek for an `el` browser locale unless a saved language exists. Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
+The shared footer on every application screen credits Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas, with localized wording in English and Greek. It also offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language defaults to Greek for an `el` browser locale unless a saved language exists. Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
 
 Delete Saved Data is available only in the footer and removes the active session plus current/previous results while preserving language and display preferences. Results use Retake Test as the repeat action so students can immediately start another randomized attempt. A reusable native dialog handles Escape, focus containment, and focus restoration. One polite live region announces selection/saving and completed actions.
 
@@ -112,3 +114,13 @@ The previous shared dimension/overall calculation was `points / known × maximum
 | Fuzzy uncertainty | Partial membership can represent uncertainty. But unknown tendency 0.5 with positive certainty can reward replacing a keyed zero; dividing by certainty can also inflate sparse evidence. With only three response choices, a separate coverage measure represents the available evidence without an inference engine. Zero unknown weight and a fixed denominator reduce to the chosen model. |
 
 Now 3 positive and 9 unknown answers yield **3/12, 25% coverage, Low**. Unknown is neither an incorrect answer nor a Disagree response. Existing coverage notices remain: 60–79% reduced coverage, below 60% caution. No additional minimum-coverage cutoff is used; only zero known responses suppress classification. Profile highlights still require at least three dimensions with at least 60% coverage.
+
+## Result integrity and multiple tabs
+
+Current results are always recalculated from the active completed session. A standalone stored result cannot override those answers or appear as a current result for an unfinished session. Version 4 results retain the answers used to calculate them; both current and previous stored scores, coverage, and classifications must match those answers. Previous records without answer evidence are discarded. Runtime scoring rejects invalid answers, invalid IDs, and incomplete submissions.
+
+Test-data mutations use a shared Web Lock when available and check the stored records before writing. If another tab changes the records, stale actions are cancelled and the latest saved state opens on the welcome screen with a notice. Browsers without Web Locks use the same stale-state check, but cannot guarantee serialization of simultaneous writes. Storage failures continue to allow in-memory use with a saving warning.
+
+These are consistency checks, not authentication: a user who controls the browser can still fabricate both answers and results or change displayed content. This static self-assessment does not verify identity, honesty, or completion time.
+
+Each question box shows its permanent original question number at the bottom, independently of its randomized display position and selected language.

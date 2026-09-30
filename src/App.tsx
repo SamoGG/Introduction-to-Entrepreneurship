@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { categories, questions } from './data/questions.ts';
 import { translations } from './i18n/translations.ts';
 import { calculateResult } from './lib/scoring.ts';
 import type { Answer } from './lib/scoring.ts';
 import { shuffleQuestions } from './lib/shuffle.ts';
-import { deleteTestData, keys, loadPreferences, loadState, saveStored } from './lib/storage.ts';
+import { deleteTestData, keys, loadPreferences, loadState, saveStored, testDataSnapshot } from './lib/storage.ts';
 import type { Language, TestSession } from './lib/storage.ts';
 import { Modal } from './components/Modal.tsx';
 import { preferencesKey } from './lib/preferences.ts';
@@ -20,13 +20,15 @@ const answerChoices: Answer[] = ['agree', 'disagree', 'unknown'];
 
 export default function App() {
   const [initial] = useState(loadState);
+  const snapshot = useRef(testDataSnapshot());
   const [session, setSession] = useState(initial.session);
-  const [current, setCurrent] = useState(() => initial.current ?? (initial.session?.completed ? calculateResult(initial.session.answers) : null));
+  const [current, setCurrent] = useState(initial.current);
   const [previous, setPrevious] = useState(initial.previous);
   const [language, setLanguage] = useState<Language>(initial.language);
   const [screen, setScreen] = useState<Screen>('welcome');
   const [fromReview, setFromReview] = useState(false);
   const [storageError, setStorageError] = useState(false);
+  const [changedElsewhere, setChangedElsewhere] = useState(false);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [preferences, setPreferences] = useState(loadPreferences);
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
@@ -40,6 +42,43 @@ export default function App() {
   const question = questions.find(item => item.id === activeId);
   const selected = activeId ? session?.answers[activeId] : undefined;
 
+  function refreshFromStorage() {
+    const next = loadState();
+    snapshot.current = testDataSnapshot();
+    setSession(next.session); setCurrent(next.current); setPrevious(next.previous);
+    setLanguage(next.language); setFromReview(false); setReviewFilter('all');
+    setPanel(null); setScreen('welcome');
+    setChangedElsewhere(true);
+    announce(t.updatedElsewhere);
+  }
+
+  function transact(action: () => void, clearNotice = true) {
+    const expected = snapshot.current;
+    const run = () => {
+      const latest = testDataSnapshot();
+      if (latest !== expected) { refreshFromStorage(); return; }
+      if (clearNotice) setChangedElsewhere(false);
+      action();
+      snapshot.current = testDataSnapshot();
+    };
+    // Serialize writes across tabs, then check for stale state while holding the lock.
+    if (navigator.locks) void navigator.locks.request('get2-test-data', run).catch(() => {
+      setStorageError(true);
+    });
+    else run();
+  }
+
+  useEffect(() => {
+    function changed(event: StorageEvent) {
+      if (event.key === null || [keys.session, keys.current, keys.previous].some(key => key === event.key)) {
+        // Wait for the other tab's entire transaction, not an intermediate record.
+        transact(() => {}, false);
+      }
+    }
+    window.addEventListener('storage', changed);
+    return () => window.removeEventListener('storage', changed);
+  });
+
   function persist(key: string, value: unknown) {
     const success = saveStored(key, value);
     if (!success) setStorageError(true);
@@ -52,28 +91,32 @@ export default function App() {
   }
 
   function switchLanguage(next: Language) {
-    setLanguage(next);
-    persist(keys.language, next);
-    if (session) updateSession({ ...session, language: next });
+    transact(() => {
+      setLanguage(next);
+      persist(keys.language, next);
+      if (session) updateSession({ ...session, language: next });
+    });
   }
 
   function startNew() {
-    // Move the last completed result only once. Restarting an unfinished
-    // retake must not erase its immediately previous completed result.
-    if (current) {
-      setPrevious(current);
-      persist(keys.previous, current);
-      setCurrent(null);
-      persist(keys.current, null);
-    }
-    let order = shuffleQuestions();
-    if (session && order.every((id, index) => id === session.questionOrder[index])) order = order.reverse();
-    updateSession({ version: 2, questionOrder: order, answers: {}, currentIndex: 0, language, completed: false });
-    persist(keys.language, language);
-    setFromReview(false);
-    setReviewFilter('all');
-    setAnswerStatus(null);
-    setScreen('question');
+    transact(() => {
+      // Move the last completed result only once. Restarting an unfinished
+      // retake must not erase its immediately previous completed result.
+      if (current) {
+        setPrevious(current);
+        persist(keys.previous, current);
+        setCurrent(null);
+        persist(keys.current, null);
+      }
+      let order = shuffleQuestions();
+      if (session && order.every((id, index) => id === session.questionOrder[index])) order = order.reverse();
+      updateSession({ version: 2, questionOrder: order, answers: {}, currentIndex: 0, language, completed: false });
+      persist(keys.language, language);
+      setFromReview(false);
+      setReviewFilter('all');
+      setAnswerStatus(null);
+      setScreen('question');
+    });
   }
 
   function requestNew() {
@@ -82,29 +125,35 @@ export default function App() {
   }
 
   function choose(answer: Answer) {
-    if (!session || !activeId || session.completed) return;
-    const changed = session.answers[activeId] !== undefined;
-    const saved = updateSession({ ...session, answers: { ...session.answers, [activeId]: answer } });
-    const status = saved ? changed ? 'answerUpdated' : 'answerSaved' : 'answerNotSaved';
-    setAnswerStatus(status);
-    announce(`${t[answer]} ${t.selectedLabel}. ${t[status]}`);
+    transact(() => {
+      if (!session || !activeId || session.completed) return;
+      const changed = session.answers[activeId] !== undefined;
+      const saved = updateSession({ ...session, answers: { ...session.answers, [activeId]: answer } });
+      const status = saved ? changed ? 'answerUpdated' : 'answerSaved' : 'answerNotSaved';
+      setAnswerStatus(status);
+      announce(`${t[answer]} ${t.selectedLabel}. ${t[status]}`);
+    });
   }
 
   function move(offset: number) {
-    if (!session || (offset > 0 && !selected)) return;
-    if (session.currentIndex + offset >= 54) { setScreen('review'); return; }
-    if (session.currentIndex + offset < 0) return;
-    updateSession({ ...session, currentIndex: session.currentIndex + offset });
+    transact(() => {
+      if (!session || (offset > 0 && !selected)) return;
+      if (session.currentIndex + offset >= 54) { setScreen('review'); return; }
+      if (session.currentIndex + offset < 0) return;
+      updateSession({ ...session, currentIndex: session.currentIndex + offset });
+    });
   }
 
   function finish() {
-    if (!session || answeredCount !== 54) return;
-    const result = calculateResult(session.answers);
-    setCurrent(result);
-    persist(keys.current, result);
-    updateSession({ ...session, completed: true });
-    setScreen('results');
-    announce(t.resultsCalculated);
+    transact(() => {
+      if (!session || answeredCount !== 54) return;
+      const result = calculateResult(session.answers);
+      setCurrent(result);
+      persist(keys.current, result);
+      updateSession({ ...session, completed: true });
+      setScreen('results');
+      announce(t.resultsCalculated);
+    });
   }
 
   useEffect(() => {
@@ -133,11 +182,13 @@ export default function App() {
   }
 
   function clearData() {
-    if (!deleteTestData()) { setDeleteError(true); return; }
-    setSession(null); setCurrent(null); setPrevious(null);
-    setFromReview(false); setReviewFilter('all'); setAnswerStatus(null);
-    setDeleteError(false); setPanel(null); setScreen('welcome');
-    announce(t.dataDeleted);
+    transact(() => {
+      if (!deleteTestData()) { setDeleteError(true); return; }
+      setSession(null); setCurrent(null); setPrevious(null);
+      setFromReview(false); setReviewFilter('all'); setAnswerStatus(null);
+      setDeleteError(false); setPanel(null); setScreen('welcome');
+      announce(t.dataDeleted);
+    });
   }
 
   useEffect(() => {
@@ -175,6 +226,7 @@ export default function App() {
 
   return <>
     <div className="sr-only" role="status" aria-live="polite" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></div>
+    {changedElsewhere && <p className="storage-notice" role="status">{t.updatedElsewhere}</p>}
     <a href="#main" className="skip-link">{t.skip}</a>
     <header className="site-header no-print">
       <button className="brand" onClick={() => setScreen('welcome')} aria-label={t.title}>
@@ -232,6 +284,7 @@ export default function App() {
             </label>)}
           </fieldset>
           <p className="answer-feedback">{answerStatus ? t[answerStatus] : '\u00a0'}</p>
+          <p className="original-question-number">{t.originalQuestion} {question.id}</p>
         </section>
           <div className="question-navigation"><button className="button secondary" disabled={session.currentIndex === 0} onClick={() => move(-1)}><Icon name="arrow-left" />{t.previous}</button><button className="button primary" disabled={!selected} onClick={() => fromReview ? setScreen('review') : move(1)}>{fromReview ? t.backReview : session.currentIndex === 53 ? t.review : t.next}<Icon name="arrow-right" /></button></div>
         <p className="keyboard-hint">{t.keyboard} <kbd>1</kbd> {t.keyAgree} <span>·</span> <kbd>2</kbd> {t.keyDisagree} <span>·</span> <kbd>3</kbd> {t.keyUnknown} <span>·</span> <kbd>Enter</kbd> {t.keyEnter}</p>
@@ -252,7 +305,7 @@ export default function App() {
           {visibleQuestions.length === 0 && <p className="empty-filter">{t.emptyFilter}</p>}
           <nav className="question-grid" aria-label={t.navigator}>{visibleQuestions.map(({ id, index }) => {
             const answer = session.answers[id];
-            return <button key={id} className={answer === 'unknown' ? 'unknown' : answer ? 'normal' : 'unanswered'} aria-label={`${t.question} ${index + 1}: ${answer ? t[answer] : t.unanswered}`} onClick={() => { updateSession({ ...session, currentIndex: index }); setFromReview(true); setScreen('question'); }}>{index + 1}<small aria-hidden="true">{answer === 'unknown' ? <Icon name="help" /> : answer ? <Icon name="check" /> : <Icon name="minus" />}</small></button>;
+            return <button key={id} className={answer === 'unknown' ? 'unknown' : answer ? 'normal' : 'unanswered'} aria-label={`${t.question} ${index + 1}: ${answer ? t[answer] : t.unanswered}`} onClick={() => transact(() => { updateSession({ ...session, currentIndex: index }); setFromReview(true); setScreen('question'); })}>{index + 1}<small aria-hidden="true">{answer === 'unknown' ? <Icon name="help" /> : answer ? <Icon name="check" /> : <Icon name="minus" />}</small></button>;
           })}</nav>
           <p className={`review-readiness ${answeredCount === 54 ? 'ready' : ''}`}>{answeredCount === 54 ? t.ready : t.remaining}</p>
           <button className="button primary calculate-button" disabled={answeredCount !== 54} onClick={finish}>{t.calculate}<Icon name="arrow-right" /></button>
@@ -271,6 +324,7 @@ export default function App() {
         <button className="text-button" onClick={() => openPanel('about')}>{t.aboutTitle}</button>
         {hasTestData && <button className="text-button" onClick={() => openPanel('delete')}>{t.deleteData}</button>}
       </nav>
+      <p className="footer-credit">{t.madeBy}</p>
     </footer>
     {panel && <Modal title={panelTitle} closeLabel={t.close} onClose={() => setPanel(null)}>
       {panel === 'preferences' ? <div className="preferences-panel">

@@ -14,17 +14,28 @@ export type Score = {
   classification: Classification | null;
 };
 export type Result = {
-  version: 3;
+  version: 4;
+  answers: Answers;
   completedAt: string;
   overall: Score;
   dimensions: Record<Category, Score>;
 };
+
+export function validAnswers(value: unknown, complete = false): value is Answers {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) return false;
+  const entries = Object.entries(value);
+  return (!complete || entries.length === 54) && entries.every(([id, answer]) =>
+    /^([1-9]|[1-4][0-9]|5[0-4])$/.test(id) &&
+    (answer === 'agree' || answer === 'disagree' || answer === 'unknown'));
+}
 
 export function scoreAnswer(questionId: number, answer: Answer | undefined): number | null {
   if (!Number.isInteger(questionId) || questionId < 1 || questionId > 54) {
     throw new Error('Scoring requires a permanent question ID from 1 to 54.');
   }
   if (answer === undefined || answer === 'unknown') return null;
+  if (answer !== 'agree' && answer !== 'disagree') throw new Error('Invalid questionnaire response.');
   return Number(questionId % 2 === 0 ? answer === 'agree' : answer === 'disagree');
 }
 
@@ -53,6 +64,7 @@ export function coverageLevel(coverage: number): 'full' | 'reduced' | 'low' {
 }
 
 function calculate(ids: readonly number[], answers: Answers): Score {
+  if (!validAnswers(answers)) throw new Error('Invalid questionnaire responses.');
   let points = 0;
   let known = 0;
   let unknown = 0;
@@ -82,11 +94,13 @@ export function calculateOverallScore(answers: Answers): Score {
 }
 
 export function calculateResult(answers: Answers, completedAt = new Date().toISOString()): Result {
-  if (!Array.from({ length: 54 }, (_, index) => answers[index + 1]).every(Boolean)) {
-    throw new Error('Every statement needs a response before results can be calculated.');
+  if (!validAnswers(answers, true)) {
+    throw new Error('Every statement needs a valid response before results can be calculated.');
   }
+  if (!Number.isFinite(Date.parse(completedAt))) throw new Error('Invalid completion date.');
   return {
-    version: 3,
+    version: 4,
+    answers: { ...answers },
     completedAt,
     overall: calculateOverallScore(answers),
     dimensions: Object.fromEntries(categories.map(category =>

@@ -1,7 +1,7 @@
 import { defaultPreferences, initialLanguage, preferencesKey, validPreferences } from './preferences.ts';
 import type { Preferences } from './preferences.ts';
 import { categories } from '../data/questions.ts';
-import { classifyDimension, classifyOverall } from './scoring.ts';
+import { calculateResult, validAnswers } from './scoring.ts';
 import type { Answers, Result, Score } from './scoring.ts';
 
 export type Language = 'en' | 'el';
@@ -29,30 +29,19 @@ export function validSession(value: unknown): value is TestSession {
       !Number.isInteger(value.currentIndex) || Number(value.currentIndex) < 0 || Number(value.currentIndex) > 53 ||
       (value.language !== 'en' && value.language !== 'el') || typeof value.completed !== 'boolean' ||
       !isObject(value.answers)) return false;
-  const entries = Object.entries(value.answers);
-  return entries.every(([id, answer]) => /^([1-9]|[1-4][0-9]|5[0-4])$/.test(id) &&
-    (answer === 'agree' || answer === 'disagree' || answer === 'unknown')) &&
-    (!value.completed || entries.length === 54);
-}
-
-function validScore(value: unknown, maximum: number): value is Score {
-  if (!isObject(value)) return false;
-  const { points, known, unknown, finalScore, coverage, classification } = value;
-  if (![points, known, unknown].every(n => typeof n === 'number' && Number.isInteger(n) && n >= 0) ||
-      value.maximum !== maximum || Number(known) + Number(unknown) !== maximum || Number(points) > Number(known)) return false;
-  const expected = Number(points);
-  const interpretable = known === 0 ? null : expected;
-  return finalScore === expected && coverage === Number(known) / maximum * 100 && classification ===
-    (maximum === 54 ? classifyOverall(interpretable) : classifyDimension(interpretable, maximum));
+  return validAnswers(value.answers, value.completed);
 }
 
 export function validResult(value: unknown): value is Result {
-  if (!isObject(value) || value.version !== 3 || typeof value.completedAt !== 'string' ||
-      !Number.isFinite(Date.parse(value.completedAt)) || !validScore(value.overall, 54) || !isObject(value.dimensions)) return false;
+  if (!isObject(value) || value.version !== 4 || typeof value.completedAt !== 'string' ||
+      !Number.isFinite(Date.parse(value.completedAt)) || !validAnswers(value.answers, true) ||
+      !isObject(value.overall) || !isObject(value.dimensions)) return false;
+  const expected = calculateResult(value.answers, value.completedAt);
+  const matches = (actual: unknown, score: Score) => isObject(actual) &&
+    (Object.keys(score) as (keyof Score)[]).every(key => actual[key] === score[key]);
   const dimensions = value.dimensions;
-  if (!categories.every(category => validScore(dimensions[category], category === 'autonomy' ? 6 : 12))) return false;
-  return (['points', 'known', 'unknown'] as const).every(field =>
-    categories.reduce((sum, category) => sum + (dimensions[category] as Score)[field], 0) === (value.overall as Score)[field]);
+  return matches(value.overall, expected.overall) && categories.every(category =>
+    matches(dimensions[category], expected.dimensions[category]));
 }
 
 export function readStored<T>(storage: Pick<Storage, 'getItem'>, key: string, validate: (value: unknown) => value is T): T | null {
@@ -83,9 +72,12 @@ export function loadState() {
   try {
     const session = readStored(localStorage, keys.session, validSession);
     const language = readStored(localStorage, keys.language, (value): value is Language => value === 'en' || value === 'el');
+    const saved = readStored(localStorage, keys.current, validResult);
+    // A current result is derived only from the active completed session.
+    const current = session?.completed ? calculateResult(session.answers, saved?.completedAt) : null;
     return {
       session,
-      current: readStored(localStorage, keys.current, validResult),
+      current,
       previous: readStored(localStorage, keys.previous, validResult),
       language: initialLanguage(language, session?.language, browserLanguage),
     };
@@ -98,4 +90,10 @@ export function loadPreferences(): Preferences {
   try {
     return readStored(localStorage, preferencesKey, validPreferences) ?? { ...defaultPreferences };
   } catch { return { ...defaultPreferences }; }
+}
+
+// Compare exact stored records before a write, including deletions and edits in other tabs.
+export function testDataSnapshot(): string | null {
+  try { return JSON.stringify([keys.session, keys.current, keys.previous].map(key => localStorage.getItem(key))); }
+  catch { return null; }
 }
