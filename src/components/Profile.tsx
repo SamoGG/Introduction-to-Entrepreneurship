@@ -35,7 +35,7 @@ export function Profile({ result, language }: { result: Result; language: Langua
       <ol className="profile-values">{categories.map((category, index) => <li key={category}>
         <span className="profile-label"><span aria-hidden="true">0{index + 1}</span>{t[category]}</span>
         <strong>{percentages[category] === null ? t.na : `${numberFormat(percentages[category]!, language, 0)}%`}</strong>
-        <small>{formatScore(result.dimensions[category].adjusted, language)} / {result.dimensions[category].maximum} · {t.coverage}: {numberFormat(result.dimensions[category].coverage, language, 0)}%</small>
+        <small>{formatScore(result.dimensions[category].finalScore, language)} / {result.dimensions[category].maximum} · {t.coverage}: {numberFormat(result.dimensions[category].coverage, language, 0)}%</small>
       </li>)}</ol>
     </div>
     <p className="small-note">{t.profileNote}</p>

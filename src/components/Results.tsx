@@ -19,7 +19,6 @@ function CoverageNotice({ score, language }: { score: Score; language: Language 
 
 function Calculation({ score, language }: { score: Score; language: Language }) {
   const t = translations[language];
-  const proportion = score.known ? numberFormat(score.points / score.known * 100, language) : t.na;
   const [medium, high] = classificationThresholds(score.maximum);
   return <details className="calculation">
     <summary>{t.how}<Icon name="chevron-down" /></summary>
@@ -27,8 +26,9 @@ function Calculation({ score, language }: { score: Score; language: Language }) 
       <dl>
         <div><dt>{t.scoredResponses}</dt><dd>{score.known} / {score.maximum}</dd></div>
         <div><dt>{t.points}</dt><dd>{score.points}</dd></div>
-        <div><dt>{t.proportion}</dt><dd>{score.known ? `${score.points} / ${score.known} = ${proportion}%` : t.na}</dd></div>
-        <div><dt>{t.normalized}</dt><dd>{score.known ? `${proportion}% × ${score.maximum} ≈ ${formatScore(score.adjusted, language)} / ${score.maximum}` : t.na}</dd></div>
+        <div><dt>{t.totalItems}</dt><dd>{score.maximum}</dd></div>
+        <div><dt>{t.coverage}</dt><dd>{score.known} / {score.maximum} = {numberFormat(score.coverage, language)}%</dd></div>
+        <div><dt>{t.finalScore}</dt><dd>{formatScore(score.finalScore, language)} / {score.maximum}</dd></div>
         <div><dt>{t.unknownResponses}</dt><dd>{score.unknown}</dd></div>
         <div><dt>{t.classification}</dt><dd>{score.classification ? t[score.classification] : t.na}</dd></div>
       </dl>
@@ -40,15 +40,14 @@ function Calculation({ score, language }: { score: Score; language: Language }) 
 }
 
 function ScoreBar({ score }: { score: Score }) {
-  return <div className="score-track" aria-hidden="true"><span style={{ width: `${score.adjusted === null ? 0 : score.adjusted / score.maximum * 100}%` }} /></div>;
+  return <div className="score-track" aria-hidden="true"><span style={{ width: `${score.finalScore / score.maximum * 100}%` }} /></div>;
 }
 
 export function resultSummary(result: Result, language: Language): string {
   const t = translations[language];
-  const describe = (name: string, score: Score) => `${name}\n${formatScore(score.adjusted, language)}${score.adjusted === null ? '' : ` / ${score.maximum}`} — ${score.classification ? t[score.classification] : t.na}\n${t.coverage}: ${numberFormat(score.coverage, language, 0)}% (${score.known} / ${score.maximum})`;
+  const describe = (name: string, score: Score) => `${name}\n${formatScore(score.finalScore, language)} / ${score.maximum} — ${score.classification ? t[score.classification] : t.na}\n${t.coverage}: ${numberFormat(score.coverage, language, 0)}% (${score.known} / ${score.maximum})\n${t.unknownResponses}: ${score.unknown}`;
   return [t.title,
     describe(t.overall, result.overall),
-    `${t.unknownResponses}: ${result.overall.unknown}`,
     ...(result.overall.coverage < 80 ? [result.overall.known === 0 ? t.noCoverage : result.overall.coverage < 60 ? t.lowWarning : t.reducedWarning] : []),
     ...categories.map(category => describe(t[category], result.dimensions[category])), `${t.date}: ${formatDate(result.completedAt, language)}`, t.coverageNote, t.disclaimer,
   ].join('\n\n');
@@ -89,12 +88,12 @@ export function Results({ result, previous, language, onRetake, onAnnounce }: {
   }
 
   function comparisonRow(label: string, before: Score, current: Score) {
-    const difference = before.adjusted === null || current.adjusted === null ? null : current.adjusted - before.adjusted;
+    const difference = current.finalScore - before.finalScore;
     return <tr key={label}>
       <th scope="row">{label}</th>
-      <td>{formatScore(before.adjusted, language)}<small>{numberFormat(before.coverage, language, 0)}% {t.coverage.toLocaleLowerCase(language)}</small></td>
-      <td>{formatScore(current.adjusted, language)}<small>{numberFormat(current.coverage, language, 0)}% {t.coverage.toLocaleLowerCase(language)}</small></td>
-      <td>{difference === 0 ? t.noChange : `${difference !== null && difference > 0 ? '+' : ''}${formatScore(difference, language)}`}</td>
+      <td>{formatScore(before.finalScore, language)}<small>{numberFormat(before.coverage, language, 0)}% {t.coverage.toLocaleLowerCase(language)}</small></td>
+      <td>{formatScore(current.finalScore, language)}<small>{numberFormat(current.coverage, language, 0)}% {t.coverage.toLocaleLowerCase(language)}</small></td>
+      <td>{difference === 0 ? t.noChange : `${difference > 0 ? '+' : ''}${formatScore(difference, language)}`}</td>
     </tr>;
   }
 
@@ -110,10 +109,10 @@ export function Results({ result, previous, language, onRetake, onAnnounce }: {
     <section className="overall-card" aria-label={t.overall}>
       <div className="overall-main">
         <p className="eyebrow">{t.overall}</p>
-        <div className="overall-score"><strong>{formatScore(score.adjusted, language)}</strong>{score.adjusted !== null && <span>/ 54</span>}</div>
+        <div className="overall-score"><strong>{formatScore(score.finalScore, language)}</strong><span>/ 54</span></div>
         <span className="classification inverse">{score.classification ? t[score.classification] : t.na}</span>
         <ScoreBar score={score} />
-        {score.adjusted !== null && <p className="overall-percent">{numberFormat(score.adjusted / 54 * 100, language, 0)}% {t.scorePercent}</p>}
+        <p className="overall-percent">{numberFormat(score.finalScore / 54 * 100, language, 0)}% {t.scorePercent}</p>
       </div>
       <div className="overall-coverage">
         <div className="coverage-heading"><span>{t.coverage}</span><strong>{numberFormat(score.coverage, language, 0)}%</strong></div>
@@ -127,7 +126,7 @@ export function Results({ result, previous, language, onRetake, onAnnounce }: {
       <div className="overall-calculation"><Calculation score={score} language={language} /></div>
     </section>
     <div className="result-notes">
-      {score.unknown > 0 && score.known > 0 && <p>{t.adjusted}</p>}
+      {score.unknown > 0 && score.known > 0 && <p>{t.uncertaintyNote}</p>}
       <p>{t.coverageNote}</p>
     </div>
 
@@ -143,11 +142,12 @@ export function Results({ result, previous, language, onRetake, onAnnounce }: {
             <span className="classification">{dimension.classification ? t[dimension.classification] : t.na}</span>
           </div>
           <div className="dimension-score-row">
-            <p className="dimension-score"><strong>{formatScore(dimension.adjusted, language)}</strong>{dimension.adjusted !== null && <span> / {dimension.maximum}</span>}</p>
-            <span>{dimension.adjusted === null ? t.na : `${numberFormat(dimension.adjusted / dimension.maximum * 100, language, 0)}%`} <span className="sr-only">{t.scorePercent}</span></span>
+            <p className="dimension-score"><strong>{formatScore(dimension.finalScore, language)}</strong><span> / {dimension.maximum}</span></p>
+            <span>{`${numberFormat(dimension.finalScore / dimension.maximum * 100, language, 0)}%`} <span className="sr-only">{t.scorePercent}</span></span>
           </div>
           <ScoreBar score={dimension} />
           <div className="dimension-coverage"><p>{t.coverage}: <strong>{numberFormat(dimension.coverage, language, 0)}%</strong></p><p>{t.basedOn} {dimension.known} {t.of} {dimension.maximum} {t.scoredResponsesEnd}</p></div>
+          <p className="small-note">{t.unknownResponses}: {dimension.unknown}</p>
           <p className="dimension-description">{t[`${category}Description`]}</p>
           <CoverageNotice score={dimension} language={language} />
           <Calculation score={dimension} language={language} />
@@ -155,7 +155,7 @@ export function Results({ result, previous, language, onRetake, onAnnounce }: {
       })}
     </div>
 
-    {previous && <details className="comparison">
+    {previous && previous.version === result.version && <details className="comparison">
       <summary>{t.previousResult}<Icon name="chevron-down" /></summary>
       <div className="table-container"><table>
         <caption className="sr-only">{t.previousResult}</caption>

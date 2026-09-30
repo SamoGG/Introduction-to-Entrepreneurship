@@ -11,7 +11,7 @@ export function filterQuestions(order: number[], answers: Answers, filter: Revie
 export function profilePercentages(result: Result): Record<Category, number | null> {
   return Object.fromEntries(categories.map(category => {
     const score = result.dimensions[category];
-    return [category, score.adjusted === null ? null : score.adjusted / score.maximum * 100];
+    return [category, score.known === 0 ? null : score.finalScore / score.maximum * 100];
   })) as Record<Category, number | null>;
 }
 

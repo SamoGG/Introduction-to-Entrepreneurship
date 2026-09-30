@@ -95,7 +95,7 @@ test('welcome, keyboard, EN/EL, persistence, review navigation and restart', asy
   expect(errors).toEqual([]);
 });
 
-test('complete questionnaire, normalized results, copy, print, retake and comparison', async ({ page, context }) => {
+test('complete questionnaire, coverage-weighted results, copy, print, retake and comparison', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/');
   await page.getByRole('button', { name: 'Start Test', exact: true }).click();
@@ -108,22 +108,22 @@ test('complete questionnaire, normalized results, copy, print, retake and compar
   }
   await expect(page.getByRole('button', { name: 'Calculate Results' })).toBeEnabled();
   await page.getByRole('button', { name: 'Calculate Results' }).click();
-  await expect(page.locator('.overall-score')).toHaveText('40.5/ 54');
+  await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await expect(page.locator('.overall-main .classification')).toHaveText('Medium');
   await expect(page.locator('.coverage-heading strong')).toHaveText('74%');
   await expect(page.locator('.dimension-card')).toHaveCount(5);
   await expect(page.locator('.overall-coverage')).toContainText('reduced response coverage');
   expect(await page.locator('details[open]').count()).toBe(0);
   await page.locator('.overall-calculation summary').click();
-  await expect(page.locator('.overall-calculation')).toContainText('30 / 40 = 75%');
+  await expect(page.locator('.overall-calculation')).toContainText('40 / 54 = 74.1%');
   await page.getByRole('button', { name: 'Copy Results', exact: true }).click();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(copied).toContain('Overall\n40.5 / 54 — Medium');
+  expect(copied).toContain('Overall\n30 / 54 — Medium');
   expect(copied).toContain('Response coverage: 74%');
   await page.getByRole('button', { name: 'Ελληνικά' }).click();
-  await expect(page.locator('.overall-score')).toHaveText('40,5/ 54');
+  await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await page.getByRole('button', { name: 'Αντιγραφή Αποτελεσμάτων', exact: true }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Συνολικά\n40,5 / 54 — Μέτρια');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Συνολικά\n30 / 54 — Μέτρια');
   await page.getByRole('button', { name: 'English' }).click();
   await page.evaluate(() => { window.print = () => { document.body.dataset.printed = 'yes'; }; });
   await page.getByRole('button', { name: 'Download Results', exact: true }).click();
@@ -139,16 +139,16 @@ test('complete questionnaire, normalized results, copy, print, retake and compar
   await page.reload();
   await expect(page.getByRole('button', { name: 'View Results', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'View Results', exact: true }).click();
-  await expect(page.locator('.overall-score')).toHaveText('40.5/ 54');
+  await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await page.getByRole('button', { name: 'Take Test Again' }).click();
   const retake = await readSession(page);
   expect(retake.questionOrder).not.toEqual(first.questionOrder);
   expect(retake.answers).toEqual({});
-  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.adjusted, previousKey)).toBe(40.5);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(30);
   // A restart during a retake must preserve the last completed comparison.
   await page.getByRole('button', { name: 'Restart Test', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Restart Test' }).click();
-  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.adjusted, previousKey)).toBe(40.5);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(30);
   const second = await readSession(page);
   for (let index = 0; index < 54; index++) {
     await page.getByRole('radio', { name: winning(second.questionOrder[index]) === 'agree' ? 'Agree' : 'Disagree', exact: true }).check();
@@ -157,10 +157,10 @@ test('complete questionnaire, normalized results, copy, print, retake and compar
   await page.getByRole('button', { name: 'Calculate Results' }).click();
   await expect(page.locator('.overall-score')).toHaveText('54/ 54');
   await page.locator('.comparison summary').click();
-  await expect(page.locator('.comparison tbody tr').first()).toContainText('+13.5');
+  await expect(page.locator('.comparison tbody tr').first()).toContainText('+24');
   expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual(['get2-active-session', 'get2-current-result', 'get2-language', 'get2-previous-result']);
   await page.getByRole('button', { name: 'Take Test Again' }).click();
-  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.adjusted, previousKey)).toBe(54);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(54);
   expect(await page.evaluate(key => localStorage.getItem(key), currentKey)).toBeNull();
 });
 
@@ -170,15 +170,15 @@ test('all unknowns finish with N/A, zero coverage, safe calculations and copy fa
   await page.getByRole('button', { name: 'Review answers', exact: true }).first().click();
   await expect(page.getByRole('button', { name: 'Calculate Results' })).toBeEnabled();
   await page.getByRole('button', { name: 'Calculate Results' }).click();
-  await expect(page.locator('.overall-score')).toHaveText('N/A');
+  await expect(page.locator('.overall-score')).toHaveText('0/ 54');
   await expect(page.locator('.coverage-heading strong')).toHaveText('0%');
-  await expect(page.locator('.dimension-score strong')).toHaveText(['N/A', 'N/A', 'N/A', 'N/A', 'N/A']);
+  await expect(page.locator('.dimension-score strong')).toHaveText(['0', '0', '0', '0', '0']);
   for (const summary of await page.locator('.calculation summary').all()) await summary.click();
   await expect(page.locator('body')).not.toContainText('NaN');
   await expect(page.locator('body')).not.toContainText('Infinity');
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('Denied')) }, configurable: true }));
   await page.getByRole('button', { name: 'Copy Results' }).click();
-  await expect(page.getByRole('textbox', { name: 'Result summary' })).toContainText('Overall\nN/A');
+  await expect(page.getByRole('textbox', { name: 'Result summary' })).toContainText('Overall\n0 / 54 — N/A');
 });
 
 test('mobile layouts in both languages fit 320px and 390px screens', async ({ page }) => {
@@ -426,4 +426,56 @@ test('unavailable storage getters and failed deletion preserve a usable session'
   await expect(page.getByRole('radio', { name: 'Agree', exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.locator('#question-position')).toHaveText('Question 2 of 54');
+});
+
+test('three positives and nine unknowns show 3/12 in screen, copy and print', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const creativeIds = questions.filter(q => q.category === 'creativity').map(q => q.id);
+  const answers: Answers = Object.fromEntries(questions.map(q => [q.id, 'unknown']));
+  creativeIds.slice(0, 3).forEach(id => { answers[id] = winning(id); });
+  await seed(page, answers, true);
+  const dimension = page.locator('.dimension-card').filter({ has: page.getByRole('heading', { name: 'Creative Tendency', exact: true }) });
+  await expect(dimension.locator('.dimension-score')).toHaveText('3 / 12');
+  await expect(dimension.locator('.classification')).toHaveText('Low');
+  await expect(dimension).toContainText('Response coverage: 25%');
+  await expect(dimension).toContainText('Unknown responses: 9');
+  await dimension.locator('summary').click();
+  await expect(dimension.locator('.calculation')).toContainText('3 / 12 = 25%');
+  await expect(dimension.locator('.calculation')).not.toContainText('×');
+  await page.getByRole('button', { name: 'Copy Results', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Creative Tendency\n3 / 12 — Low\nResponse coverage: 25% (3 / 12)\nUnknown responses: 9');
+  await page.emulateMedia({ media: 'print' });
+  await expect(dimension.locator('.dimension-score')).toBeVisible();
+  await expect(dimension.getByText('Unknown responses: 9', { exact: true })).toBeVisible();
+  await expect(dimension.locator('.dimension-coverage')).toBeVisible();
+});
+
+test('old prorated results cannot enter retake comparison; answers and preferences survive', async ({ page }) => {
+  const answers: Answers = Object.fromEntries(questions.map(q => [q.id, q.id <= 3 ? winning(q.id) : 'unknown']));
+  await seed(page, answers, true);
+  await page.evaluate(() => {
+    const current = JSON.parse(localStorage.getItem('get2-current-result')!);
+    const prorate = (score: Record<string, number>) => {
+      const { finalScore: _, ...rest } = score;
+      return { ...rest, adjusted: score.known ? score.points / score.known * score.maximum : null };
+    };
+    const legacy = { ...current, version: 2, overall: prorate(current.overall), dimensions: Object.fromEntries(Object.entries(current.dimensions).map(([key, score]) => [key, prorate(score as Record<string, number>)])) };
+    localStorage.setItem('get2-current-result', JSON.stringify(legacy));
+    localStorage.setItem('get2-previous-result', JSON.stringify(legacy));
+    localStorage.setItem('get2-language', JSON.stringify('el'));
+    localStorage.setItem('get2-preferences', JSON.stringify({ version: 1, theme: 'dark', largerText: true, highContrast: true, reduceMotion: true }));
+  });
+  const preferences = await page.evaluate(() => localStorage.getItem('get2-preferences'));
+  await page.reload();
+  await page.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true }).click();
+  await expect(page.locator('.overall-score')).toHaveText('3/ 54');
+  await expect(page.locator('.comparison')).toHaveCount(0);
+  expect((await readSession(page)).answers).toEqual(answers);
+  expect(await page.evaluate(() => localStorage.getItem('get2-preferences'))).toBe(preferences);
+  await page.getByRole('button', { name: 'English' }).click();
+  await page.getByRole('button', { name: 'Take Test Again' }).click();
+  const previous = await page.evaluate(() => JSON.parse(localStorage.getItem('get2-previous-result')!));
+  expect(previous.version).toBe(3);
+  expect(previous.overall.finalScore).toBe(3);
+  expect(previous.overall.adjusted).toBeUndefined();
 });

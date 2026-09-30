@@ -9,12 +9,12 @@ export type Score = {
   known: number;
   unknown: number;
   maximum: number;
-  adjusted: number | null;
+  finalScore: number;
   coverage: number;
   classification: Classification | null;
 };
 export type Result = {
-  version: 2;
+  version: 3;
   completedAt: string;
   overall: Score;
   dimensions: Record<Category, Score>;
@@ -62,12 +62,13 @@ function calculate(ids: readonly number[], answers: Answers): Score {
     if (answers[id] === 'unknown') unknown++;
   }
   const maximum = ids.length;
-  // Keep full precision for classification. Round only when displaying results.
-  const adjusted = known === 0 ? null : points / known * maximum;
+  // Unknown is uncertainty, not a keyed response. It cannot add evidence points.
+  const finalScore = points;
+  const interpretable = known === 0 ? null : finalScore;
   return {
-    points, known, unknown, maximum, adjusted,
+    points, known, unknown, maximum, finalScore,
     coverage: calculateCoverage(known, maximum),
-    classification: maximum === 54 ? classifyOverall(adjusted) : classifyDimension(adjusted, maximum),
+    classification: maximum === 54 ? classifyOverall(interpretable) : classifyDimension(interpretable, maximum),
   };
 }
 
@@ -76,7 +77,7 @@ export function calculateDimensionScore(category: Category, answers: Answers): S
 }
 
 export function calculateOverallScore(answers: Answers): Score {
-  // Calculate directly; summing independently normalized dimensions is incorrect.
+  // The overall score equals the sum of dimension points.
   return calculate(Array.from({ length: 54 }, (_, index) => index + 1), answers);
 }
 
@@ -85,7 +86,7 @@ export function calculateResult(answers: Answers, completedAt = new Date().toISO
     throw new Error('Every statement needs a response before results can be calculated.');
   }
   return {
-    version: 2,
+    version: 3,
     completedAt,
     overall: calculateOverallScore(answers),
     dimensions: Object.fromEntries(categories.map(category =>

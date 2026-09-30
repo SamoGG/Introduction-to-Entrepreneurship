@@ -37,16 +37,17 @@ export function validSession(value: unknown): value is TestSession {
 
 function validScore(value: unknown, maximum: number): value is Score {
   if (!isObject(value)) return false;
-  const { points, known, unknown, adjusted, coverage, classification } = value;
+  const { points, known, unknown, finalScore, coverage, classification } = value;
   if (![points, known, unknown].every(n => typeof n === 'number' && Number.isInteger(n) && n >= 0) ||
       value.maximum !== maximum || Number(known) + Number(unknown) !== maximum || Number(points) > Number(known)) return false;
-  const expected = known === 0 ? null : Number(points) / Number(known) * maximum;
-  return adjusted === expected && coverage === Number(known) / maximum * 100 && classification ===
-    (maximum === 54 ? classifyOverall(expected) : classifyDimension(expected, maximum));
+  const expected = Number(points);
+  const interpretable = known === 0 ? null : expected;
+  return finalScore === expected && coverage === Number(known) / maximum * 100 && classification ===
+    (maximum === 54 ? classifyOverall(interpretable) : classifyDimension(interpretable, maximum));
 }
 
 export function validResult(value: unknown): value is Result {
-  if (!isObject(value) || value.version !== 2 || typeof value.completedAt !== 'string' ||
+  if (!isObject(value) || value.version !== 3 || typeof value.completedAt !== 'string' ||
       !Number.isFinite(Date.parse(value.completedAt)) || !validScore(value.overall, 54) || !isObject(value.dimensions)) return false;
   const dimensions = value.dimensions;
   if (!categories.every(category => validScore(dimensions[category], category === 'autonomy' ? 6 : 12))) return false;

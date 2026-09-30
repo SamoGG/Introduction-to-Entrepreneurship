@@ -46,10 +46,10 @@ test('profile percentages normalize different scales and distinguish N/A from ze
   const result = calculateResult(Object.fromEntries(questions.map(q => [q.id, winning(q.id)])));
   const percentages = profilePercentages(result);
   for (const category of categories) assert.equal(percentages[category], 100);
-  result.dimensions.autonomy.adjusted = 3;
-  result.dimensions.achievement.adjusted = 3;
-  result.dimensions.risk.adjusted = 0;
-  result.dimensions.locus.adjusted = null;
+  result.dimensions.autonomy.finalScore = 3;
+  result.dimensions.achievement.finalScore = 3;
+  result.dimensions.risk.finalScore = 0;
+  result.dimensions.locus.known = 0;
   assert.equal(profilePercentages(result).autonomy, 50);
   assert.equal(profilePercentages(result).achievement, 25);
   assert.equal(profilePercentages(result).risk, 0);
@@ -60,7 +60,7 @@ test('summary excludes low-coverage dimensions and requires at least three eligi
   const answers = Object.fromEntries(questions.map(q => [q.id, winning(q.id)]));
   let result = calculateResult(answers);
   assert.equal(profileHighlights(result)?.kind, 'balanced');
-  result.dimensions.autonomy.adjusted = 0;
+  result.dimensions.autonomy.finalScore = 0;
   result.dimensions.risk.coverage = 59;
   const summary = profileHighlights(result)!;
   assert.equal(summary.kind, 'higher');

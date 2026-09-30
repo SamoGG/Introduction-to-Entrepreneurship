@@ -31,7 +31,7 @@ test('invalid question configuration fails clearly', () => {
   }
 });
 
-test('odd/even scoring uses original IDs and unknown is never a zero', () => {
+test('odd/even scoring uses original IDs and unknown remains distinct from a keyed zero', () => {
   for (let id = 1; id <= 54; id++) {
     assert.equal(scoreAnswer(id, earnsPoint(id)), 1);
     assert.equal(scoreAnswer(id, losesPoint(id)), 0);
@@ -43,22 +43,22 @@ test('odd/even scoring uses original IDs and unknown is never a zero', () => {
   assert.throws(() => scoreAnswer(55, 'agree'));
 });
 
-test('the specified dimension example yields 6/8 × 12 = 9', () => {
+test('six points with eight known responses remain 6/12', () => {
   const answers: Answers = {};
   categoryIds.achievement.forEach((id, i) => { answers[id] = i < 6 ? earnsPoint(id) : i < 8 ? losesPoint(id) : 'unknown'; });
   const score = calculateDimensionScore('achievement', answers);
   assert.equal(score.points, 6);
   assert.equal(score.known, 8);
   assert.equal(score.unknown, 4);
-  assert.equal(score.adjusted, 9);
+  assert.equal(score.finalScore, 6);
   assert.equal(score.coverage, 8 / 12 * 100);
-  assert.equal(score.classification, 'medium');
+  assert.equal(score.classification, 'low');
 });
 
-test('the specified overall example yields 30/40 × 54 = 40.5', () => {
+test('thirty points with forty known responses remain 30/54', () => {
   const answers = answersWith(id => id <= 30 ? earnsPoint(id) : id <= 40 ? losesPoint(id) : 'unknown');
   const score = calculateOverallScore(answers);
-  assert.equal(score.adjusted, 40.5);
+  assert.equal(score.finalScore, 30);
   assert.equal(score.known, 40);
   assert.equal(score.unknown, 14);
   assert.equal(score.coverage, 40 / 54 * 100);
@@ -68,7 +68,7 @@ test('the specified overall example yields 30/40 × 54 = 40.5', () => {
 test('full coverage is equivalent to raw scoring and classifications use unrounded scores', () => {
   for (let points = 0; points <= 54; points++) {
     const score = calculateOverallScore(answersWith(id => id <= points ? earnsPoint(id) : losesPoint(id)));
-    assert.ok(Math.abs(score.adjusted! - points) < 1e-12);
+    assert.ok(Math.abs(score.finalScore! - points) < 1e-12);
     assert.equal(score.coverage, 100);
     assert.equal(score.unknown, 0);
     assert.equal(score.classification, points < 27 ? 'low' : points < 44 ? 'medium' : 'high');
@@ -90,13 +90,13 @@ test('full coverage is equivalent to raw scoring and classifications use unround
 test('zero coverage yields N/A data; a real score of zero remains a score', () => {
   const result = calculateResult(answersWith(() => 'unknown'));
   for (const score of [result.overall, ...Object.values(result.dimensions)]) {
-    assert.equal(score.adjusted, null);
+    assert.equal(score.finalScore, 0);
     assert.equal(score.classification, null);
     assert.equal(score.coverage, 0);
     assert.equal(score.unknown, score.maximum);
   }
-  assert.equal(calculateOverallScore(answersWith(losesPoint)).adjusted, 0);
-  assert.equal(calculateOverallScore({}).adjusted, null);
+  assert.equal(calculateOverallScore(answersWith(losesPoint)).finalScore, 0);
+  assert.equal(calculateOverallScore({}).finalScore, 0);
   assert.equal(classifyOverall(null), null);
   assert.equal(classifyDimension(null, 6), null);
   assert.equal(calculateCoverage(0, 0), 0);
@@ -113,13 +113,13 @@ test('coverage warning boundaries are exact and independent of score', () => {
   assert.equal(coverageLevel(0), 'low');
 });
 
-test('overall is directly normalized, rather than the sum of dimension scores', () => {
+test('overall equals the sum of dimension scores', () => {
   const answers = answersWith(id => categoryIds.autonomy.includes(id) ? 'unknown' : earnsPoint(id));
   answers[3] = losesPoint(3);
   const result = calculateResult(answers);
-  assert.equal(result.overall.adjusted, 48 / 49 * 54);
-  assert.equal(result.dimensions.autonomy.adjusted, 0);
-  assert.notEqual(result.overall.adjusted, Object.values(result.dimensions).reduce((sum, score) => sum + (score.adjusted ?? 0), 0));
+  assert.equal(result.overall.finalScore, 48);
+  assert.equal(result.dimensions.autonomy.finalScore, 0);
+  assert.equal(result.overall.finalScore, Object.values(result.dimensions).reduce((sum, score) => sum + (score.finalScore ?? 0), 0));
 });
 
 test('2,000 seeded shuffles preserve all IDs, avoid category triples, and vary order', () => {
@@ -166,7 +166,7 @@ test('malformed storage and tampered results are rejected safely', () => {
   const result = calculateResult(answersWith(id => id > 40 ? 'unknown' : id > 30 ? losesPoint(id) : earnsPoint(id)), '2026-09-23T12:00:00.000Z');
   assert.ok(validResult(JSON.parse(JSON.stringify(result))));
   assert.equal(validResult({ ...result, version: 1 }), false);
-  assert.equal(validResult({ ...result, overall: { ...result.overall, adjusted: 54 } }), false);
+  assert.equal(validResult({ ...result, overall: { ...result.overall, finalScore: 54 } }), false);
   assert.equal(validResult({ ...result, dimensions: {} }), false);
   assert.equal(validResult({ ...result, completedAt: 'invalid' }), false);
   assert.ok(validResult(calculateResult(answersWith(() => 'unknown'))));
@@ -180,4 +180,81 @@ test('English and Greek have matching complete UI text', () => {
   assert.equal(translations.el.agree, 'Συμφωνώ');
   assert.equal(translations.el.disagree, 'Διαφωνώ');
   assert.equal(translations.el.unknown, 'Δεν ξέρω');
+});
+
+// Exhaust all possible positive/negative/unknown counts, then mutate every item.
+// Items are interchangeable within a dimension once their binary key is applied.
+for (const category of categories) {
+  test(`${category}: unknown substitutions never increase dimension or overall scores`, () => {
+    const ids = categoryIds[category];
+    for (let positive = 0; positive <= ids.length; positive++) {
+      for (let negative = 0; negative <= ids.length - positive; negative++) {
+        const answers = answersWith(() => 'unknown');
+        ids.forEach((id, index) => { answers[id] = index < positive ? earnsPoint(id) : index < positive + negative ? losesPoint(id) : 'unknown'; });
+        const before = calculateDimensionScore(category, answers);
+        assert.equal(before.finalScore, positive);
+        assert.equal(before.coverage, (positive + negative) / ids.length * 100);
+        assert.equal(before.unknown, ids.length - positive - negative);
+        assert.equal(before.classification, positive + negative === 0 ? null : classifyDimension(positive, ids.length));
+        const overall = calculateOverallScore(answers);
+        assert.equal(overall.finalScore, positive);
+        for (const id of ids) {
+          const unknown = { ...answers, [id]: 'unknown' as const };
+          assert.ok(calculateDimensionScore(category, unknown).finalScore <= before.finalScore);
+          assert.ok(calculateOverallScore(unknown).finalScore <= overall.finalScore);
+          const missing = { ...answers };
+          delete missing[id];
+          assert.equal(calculateOverallScore(missing).finalScore, calculateOverallScore(unknown).finalScore);
+          assert.equal(calculateDimensionScore(category, missing).finalScore, calculateDimensionScore(category, unknown).finalScore);
+          if (answers[id] === 'unknown') {
+            for (const [answer, delta] of [[earnsPoint(id), 1], [losesPoint(id), 0]] as const) {
+              const next = { ...answers, [id]: answer };
+              assert.equal(calculateDimensionScore(category, next).finalScore, positive + delta);
+              assert.equal(calculateOverallScore(next).finalScore, positive + delta);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  test(`${category}: sparse evidence cannot earn a high score; full coverage matches original GET2`, () => {
+    const ids = categoryIds[category];
+    for (const count of [1, 3]) {
+      const answers = answersWith(() => 'unknown');
+      ids.slice(0, count).forEach(id => { answers[id] = earnsPoint(id); });
+      const score = calculateDimensionScore(category, answers);
+      assert.equal(score.finalScore, count);
+      assert.equal(score.coverage, count / ids.length * 100);
+      assert.equal(score.unknown, ids.length - count);
+      assert.notEqual(score.classification, 'high');
+    }
+    for (let points = 0; points <= ids.length; points++) {
+      const answers = answersWith(losesPoint);
+      ids.slice(0, points).forEach(id => { answers[id] = earnsPoint(id); });
+      assert.equal(calculateDimensionScore(category, answers).finalScore, points);
+      assert.equal(calculateDimensionScore(category, answers).coverage, 100);
+    }
+  });
+}
+
+test('mixed responses preserve every dimension across presentation order and language', () => {
+  const answers = answersWith(id => id % 3 === 0 ? 'unknown' : id % 3 === 1 ? earnsPoint(id) : losesPoint(id));
+  const date = '2026-09-30T12:00:00.000Z';
+  const expected = calculateResult(answers, date);
+  for (const language of ['en', 'el'] as const) {
+    const session: TestSession = { version: 2, questionOrder: shuffleQuestions(), answers, currentIndex: 0, language, completed: true };
+    const restored = readStored({ getItem: () => JSON.stringify(session) }, keys.session, validSession)!;
+    const reordered = Object.fromEntries(restored.questionOrder.map(id => [id, restored.answers[id]]));
+    assert.deepEqual(calculateResult(reordered, date), expected);
+  }
+});
+
+test('prorated result version 2 is rejected even when full-coverage scores happen to match', () => {
+  for (const answers of [answersWith(earnsPoint), answersWith(() => 'unknown')]) {
+    const result = calculateResult(answers);
+    assert.equal(validResult({ ...result, version: 2 }), false);
+    assert.equal(readStored({ getItem: () => JSON.stringify({ ...result, version: 2 }) }, keys.previous, validResult), null);
+    assert.ok(validResult(result));
+  }
 });
