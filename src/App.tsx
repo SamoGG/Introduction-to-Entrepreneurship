@@ -11,6 +11,7 @@ import { preferencesKey } from './lib/preferences.ts';
 import type { Preferences } from './lib/preferences.ts';
 import { filterQuestions } from './lib/profile.ts';
 import type { ReviewFilter } from './lib/profile.ts';
+import { AttributesQuiz } from './components/AttributesQuiz.tsx';
 import { Results } from './components/Results.tsx';
 import { FlagIcon, Icon } from './components/Icon.tsx';
 
@@ -237,7 +238,7 @@ export default function App() {
       <nav className="page-tabs" aria-label={t.activities}>
         <button aria-current={screen !== 'wp' ? 'page' : undefined} onClick={() => {
           if (screen === 'wp') setScreen(get2Screen.current);
-        }}>GET2 Test</button>
+        }}>{language === 'en' ? 'GET2 Test' : 'Τεστ GET2'}</button>
         <button aria-current={screen === 'wp' ? 'page' : undefined} onClick={() => {
           if (screen !== 'wp') { get2Screen.current = screen; setScreen('wp'); }
         }}>{t.attributeMatch}</button>
@@ -251,14 +252,7 @@ export default function App() {
 
     <main id="main" className={`main-content ${screen}`}>
       {storageError && <p className="storage-notice" role="alert">{t.storageError}</p>}
-      {screen === 'wp' && <section className="wp-placeholder">
-        <header className="page-heading">
-          <p className="eyebrow">{t.attributeMatch}</p>
-          <h1 tabIndex={-1} data-page-heading>{t.wpTitle}</h1>
-          <p>{t.wpDescription}</p>
-        </header>
-        <p className="small-note">{t.comingSoon}</p>
-      </section>}
+      {screen === 'wp' && <AttributesQuiz language={language} />}
       {screen === 'welcome' && <>
         <section className="welcome-hero">
           <p className="eyebrow"><span aria-hidden="true" className="tiny-line" />{t.eyebrow}</p>

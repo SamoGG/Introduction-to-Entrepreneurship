@@ -2,7 +2,7 @@ import type { Language } from '../lib/storage.ts';
 
 const en = {
   activities: "Activities",
-  attributeMatch: "Attribute Match",
+  attributeMatch: "Attributes Quiz",
   wpTitle: "Match questions to attributes",
   wpDescription: "A future quiz for matching GET2 questions to the five entrepreneurial attributes.",
   comingSoon: "Coming soon.",
@@ -177,7 +177,7 @@ const en = {
 
 const el: typeof en = {
   activities: "Δραστηριότητες",
-  attributeMatch: "Αντιστοίχιση χαρακτηριστικών",
+  attributeMatch: "Κουίζ Χαρακτηριστικών",
   wpTitle: "Αντιστοίχιση ερωτήσεων με χαρακτηριστικά",
   wpDescription: "Ένα μελλοντικό κουίζ για την αντιστοίχιση των ερωτήσεων GET2 με τα πέντε επιχειρηματικά χαρακτηριστικά.",
   comingSoon: "Προσεχώς.",
@@ -317,7 +317,7 @@ const el: typeof en = {
   achievement: 'Ανάγκη για Επίτευξη',
   autonomy: 'Ανάγκη για Αυτονομία',
   creativity: 'Δημιουργική Τάση',
-  risk: 'Υπολογισμένη Ανάληψη Κινδύνου',
+  risk: 'Υπολογισμένη Ανάληψη Ρίσκου',
   locus: 'Εσωτερικός Τόπος Ελέγχου',
   achievementShort: 'Επίτευξη',
   autonomyShort: 'Αυτονομία',
