@@ -19,6 +19,12 @@ test('built site works at a GitHub Pages repository path with no external reques
   const origin = `http://127.0.0.1:${address.port}`;
   const requests: { url: string; method: string }[] = [];
   const errors: string[] = [];
+  await page.addInitScript(() => {
+    Object.assign(window, { cspViolations: [] as string[] });
+    document.addEventListener('securitypolicyviolation', event => {
+      (window as unknown as { cspViolations: string[] }).cspViolations.push(event.violatedDirective);
+    });
+  });
   page.on('request', request => requests.push({ url: request.url(), method: request.method() }));
   page.on('pageerror', error => errors.push(error.message));
   try {
@@ -40,5 +46,7 @@ test('built site works at a GitHub Pages repository path with no external reques
     expect(requests.some(request => request.url.endsWith('.css'))).toBe(true);
     expect(requests.some(request => request.url.endsWith('.js'))).toBe(true);
     expect(errors).toEqual([]);
+    await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute('content', /script-src 'self'/);
+    expect(await page.evaluate(() => (window as unknown as { cspViolations: string[] }).cspViolations)).toEqual([]);
   } finally { await new Promise<void>((done, reject) => server.close(error => error ? reject(error) : done())); }
 });

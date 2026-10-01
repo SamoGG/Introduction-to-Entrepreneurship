@@ -11,15 +11,44 @@ function shuffled<T>(items: readonly T[]): T[] {
 export function createQuiz(language: Language): QuizSession {
   return { version: 1, questionOrder: shuffled(questions.map(q => q.id)), optionOrder: Object.fromEntries(questions.map(q => [q.id, shuffled(categories)])), answers: {}, currentIndex: 0, language, completed: false };
 }
-export function loadQuiz(): QuizSession | null {
+const isRecord = (value: unknown): value is Record<string, unknown> => value !== null &&
+  typeof value === 'object' && !Array.isArray(value) &&
+  (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+const questionIds = questions.map(q => q.id);
+const isCategory = (value: unknown): value is Category => categories.some(c => c === value);
+const permutation = (value: unknown, expected: readonly unknown[]) => Array.isArray(value) &&
+  value.length === expected.length && new Set(value).size === expected.length &&
+  expected.every(item => value.includes(item));
+
+export function validQuizAnswers(value: unknown, complete = false): value is QuizSession['answers'] {
+  return isRecord(value) && (!complete || Object.keys(value).length === 54) &&
+    Object.entries(value).every(([id, answer]) => questionIds.some(q => String(q) === id) && isCategory(answer));
+}
+
+export function validQuizSession(value: unknown): value is QuizSession {
+  if (!isRecord(value) || value.version !== 1 || !permutation(value.questionOrder, questionIds) ||
+      !isRecord(value.optionOrder) || Object.keys(value.optionOrder).length !== 54 ||
+      !Number.isInteger(value.currentIndex) || Number(value.currentIndex) < 0 || Number(value.currentIndex) >= 54 ||
+      (value.language !== 'en' && value.language !== 'el') || typeof value.completed !== 'boolean' ||
+      !validQuizAnswers(value.answers, value.completed)) return false;
+  const options = value.optionOrder;
+  return questionIds.every(id => Object.hasOwn(options, id) && permutation(options[id], categories));
+}
+
+export function parseQuiz(raw: string | null): QuizSession | null {
   try {
-    const s = JSON.parse(localStorage.getItem(quizKey) ?? 'null') as QuizSession;
-    const permutation = (value: unknown, expected: readonly unknown[]) => Array.isArray(value) && value.length === expected.length && new Set(value).size === expected.length && value.every(v => expected.includes(v));
-    if (!s || s.version !== 1 || !permutation(s.questionOrder, questions.map(q => q.id)) || !s.optionOrder || !questions.every(q => permutation(s.optionOrder[q.id], categories)) || !s.answers || typeof s.answers !== 'object' || Array.isArray(s.answers) || !Object.entries(s.answers).every(([id, a]) => questions.some(q => String(q.id) === id) && a !== undefined && categories.includes(a)) || !Number.isInteger(s.currentIndex) || s.currentIndex < 0 || s.currentIndex >= 54 || !['en', 'el'].includes(s.language) || typeof s.completed !== 'boolean' || (s.completed && Object.keys(s.answers).length !== 54)) return null;
-    return s;
+    // A normal record is under 8 KB. Reject oversized/corrupt browser data before parsing it.
+    if (!raw || raw.length > 25_000) return null;
+    const value: unknown = JSON.parse(raw);
+    return validQuizSession(value) ? value : null;
   } catch { return null; }
 }
+
+export function loadQuiz(): QuizSession | null {
+  try { return parseQuiz(localStorage.getItem(quizKey)); } catch { return null; }
+}
 export function scoreQuiz(answers: QuizSession['answers']) {
+  if (!validQuizAnswers(answers)) throw new Error('Invalid quiz answers');
   const byAttribute = Object.fromEntries(categories.map(c => [c, { correct: 0, total: questions.filter(q => q.category === c).length, percentage: 0 }])) as Record<Category, { correct: number; total: number; percentage: number }>;
   const pairs = new Map<string, { correct: Category; selected: Category; count: number }>();
   let correctAnswers = 0;

@@ -1,5 +1,7 @@
 export const quizTranslations = {
   en: {
+    saving: 'Saving quiz progress…',
+    updatedElsewhere: 'Quiz data changed in another tab. The latest saved progress has been loaded.',
     expandReview: 'Show answers and explanations',
     collapseReview: 'Hide answers and explanations',
     chooseAttribute: 'Select attribute',
@@ -34,6 +36,8 @@ export const quizTranslations = {
     bands: ['Excellent understanding', 'Very good understanding', 'Good understanding', 'Developing understanding', 'Review recommended'], feedback: ['Strong understanding', 'Generally understood', 'Worth reviewing', 'Review this attribute'],
   },
   el: {
+    saving: 'Αποθήκευση προόδου του κουίζ…',
+    updatedElsewhere: 'Τα δεδομένα του κουίζ άλλαξαν σε άλλη καρτέλα. Φορτώθηκε η πιο πρόσφατη αποθηκευμένη πρόοδος.',
     expandReview: 'Εμφάνιση απαντήσεων και εξηγήσεων',
     collapseReview: 'Απόκρυψη απαντήσεων και εξηγήσεων',
     chooseAttribute: 'Επιλογή χαρακτηριστικού',

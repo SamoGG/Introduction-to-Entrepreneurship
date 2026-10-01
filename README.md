@@ -98,7 +98,7 @@ Keyboard controls: 1/2/3 select a response; Enter confirms the currently selecte
 
 The shared footer on every application screen credits Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas, with localized wording in English and Greek. It also offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language defaults to Greek for an `el` browser locale unless a saved language exists. Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
 
-Delete Saved Data is available only in the footer and removes the active session plus current/previous results while preserving language and display preferences. Results use Retake Test as the repeat action so students can immediately start another randomized attempt. A reusable native dialog handles Escape, focus containment, and focus restoration. One polite live region announces selection/saving and completed actions.
+Delete Saved Data is available only in the footer and removes the active questionnaire session, current/previous results, and attributes quiz progress/results while preserving language and display preferences. Results use Retake Test as the repeat action so students can immediately start another randomized attempt. A reusable native dialog handles Escape, focus containment, and focus restoration. One polite live region announces selection/saving and completed actions.
 
 Profile percentages use each dimension's original maximum. The deterministic summary compares at least three dimensions with coverage of 60% or higher; it is omitted when fewer qualify. Dimensions with no definite responses are marked N/A in the chart and are not plotted as zero; an incomplete profile does not draw a filled polygon. Their raw scores remain visible as 0 / maximum. The textual scores remain the authoritative alternative. Print output always uses a white background.
 
@@ -124,3 +124,7 @@ Test-data mutations use a shared Web Lock when available and check the stored re
 These are consistency checks, not authentication: a user who controls the browser can still fabricate both answers and results or change displayed content. This static self-assessment does not verify identity, honesty, or completion time.
 
 Each question box shows its permanent original question number at the bottom, independently of its randomized display position and selected language.
+
+## Static app security
+
+See [the static app security audit](security/STATIC_APP_SECURITY.md) for the threat model, verified checks, and GitHub Pages header limitations. Production HTML uses a same-origin CSP and a referrer policy. Browser-delivered code and any future `VITE_*` values are public; do not put secrets in them.

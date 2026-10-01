@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { categories, questions } from '../src/data/questions.ts';
-import { attributeBand, createQuiz, loadQuiz, overallBand, quizKey, scoreQuiz } from '../src/lib/attributesQuiz.ts';
+import { attributeBand, createQuiz, loadQuiz, overallBand, parseQuiz, quizKey, scoreQuiz, validQuizSession } from '../src/lib/attributesQuiz.ts';
 import { keys } from '../src/lib/storage.ts';
 const correct = Object.fromEntries(questions.map(q => [q.id, q.category]));
 const wrong = Object.fromEntries(questions.map(q => [q.id, categories[(categories.indexOf(q.category) + 1) % 5]]));
@@ -55,4 +55,26 @@ test('persistence validates permutations and retake leaves GET2 data intact', ()
     assert.equal(data.get(keys.session), 'untouched GET2');
     for (const invalid of [{...s, questionOrder: Array(54).fill(1)}, {...s, optionOrder: {}}, {...s, completed: true}, {...s, answers: {55: 'risk'}}, {...s, currentIndex: 54}]) { data.set(quizKey, JSON.stringify(invalid)); assert.equal(loadQuiz(), null); }
   } finally { Reflect.deleteProperty(globalThis, 'localStorage'); }
+});
+
+test('scoring rejects forged values, extra IDs and inherited answer objects', () => {
+  for (const answers of [null, [], { 0: 'risk' }, { 55: 'risk' }, { '01': 'risk' }, { 1: 'agree' }, { 1: undefined }, { 1: '<script>alert(1)</script>' }, Object.create(correct)]) {
+    assert.throws(() => scoreQuiz(answers as Parameters<typeof scoreQuiz>[0]), /Invalid quiz answers/);
+  }
+});
+
+test('untrusted saved sessions reject malformed records and cannot fake completion with a count', () => {
+  const s = createQuiz('en');
+  const invalid: unknown[] = [null, [], {}, {...s, answers: null}, {...s, completed: 'true'},
+    {...s, currentIndex: -1}, {...s, currentIndex: 1.5}, {...s, questionOrder: [...s.questionOrder.slice(1), 55]},
+    {...s, optionOrder: {...s.optionOrder, 1: Array(5).fill('risk')}},
+    {...s, optionOrder: {...s.optionOrder, 55: [...categories]}},
+    {...s, answers: {...correct, 54: undefined}, completed: true},
+    {...s, answers: {...correct, 54: 'agree'}, completed: true},
+    {...s, answers: {...correct, 55: 'risk'}, completed: true},
+    {...s, answers: Object.create(correct), completed: true},
+    {...s, optionOrder: Object.create(s.optionOrder)}, Object.create(s)];
+  for (const value of invalid) assert.equal(validQuizSession(value), false);
+  for (const raw of ['{', 'null', '[]', 'x'.repeat(25_001)]) assert.equal(parseQuiz(raw), null);
+  assert.equal(validQuizSession({...s, answers: correct, completed: true}), true);
 });

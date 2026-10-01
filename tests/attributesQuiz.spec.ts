@@ -19,12 +19,14 @@ test('quiz learning, keyboard, persistence, language, results and isolated retak
   await page.getByRole('radio').first().focus(); await page.keyboard.press('Space'); await page.keyboard.press('Enter');
   await expect(page.locator('#quiz-position')).toContainText('2 of 54');
   await page.getByRole('button', { name: 'Previous', exact: true }).click();
+  await page.evaluate(() => navigator.locks.request('attributes-quiz-data', () => {}));
   const state = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!) as QuizSession, key);
   await page.reload(); await page.getByRole('button', { name: 'Attributes Quiz', exact: true }).click(); await page.getByRole('button', { name: 'Continue Quiz' }).click();
   expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), key)).toEqual(state);
   await expect(page.getByRole('radio').first()).toBeChecked();
   await page.getByRole('button', { name: 'Ελληνικά', exact: true }).click();
   await expect(page.getByRole('group', { name: 'Με ποιο επιχειρηματικό χαρακτηριστικό σχετίζεται αυτή η δήλωση;' })).toBeVisible();
+  await page.evaluate(() => navigator.locks.request('attributes-quiz-data', () => {}));
   const greek = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), key);
   expect(greek).toEqual({ ...state, language: 'el' });
   await page.getByRole('button', { name: 'English', exact: true }).click();
@@ -35,7 +37,8 @@ test('quiz learning, keyboard, persistence, language, results and isolated retak
     const question = questions.find(q => q.id === state.questionOrder[i])!;
     // Two deliberately wrong answers exercise post-submission corrections.
     const category = i < 2 ? question.category === 'risk' ? 'achievement' : 'risk' : question.category;
-    await page.getByRole('radio', { name: translations.en[category], exact: true }).check();
+    await page.getByRole('radio', { name: translations.en[category], exact: true }).click();
+    await expect(page.getByRole('radio', { name: translations.en[category], exact: true })).toBeChecked();
     await page.getByRole('button', { name: i === 53 ? 'Review answers' : 'Next', exact: true }).last().click();
   }
   await page.getByRole('button', { name: 'Submit Quiz' }).click();
@@ -43,6 +46,7 @@ test('quiz learning, keyboard, persistence, language, results and isolated retak
   await page.getByText('Review Incorrect Answers (2)', { exact: true }).click();
   await expect(page.locator('.quiz-correction')).toHaveCount(2);
   await page.getByRole('button', { name: 'Retake Quiz', exact: true }).click();
+  await page.evaluate(() => navigator.locks.request('attributes-quiz-data', () => {}));
   const retake = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), key);
   expect(retake.answers).toEqual({}); expect(retake.currentIndex).toBe(0);
   expect(retake.questionOrder).not.toEqual(state.questionOrder); expect(retake.optionOrder).not.toEqual(state.optionOrder);

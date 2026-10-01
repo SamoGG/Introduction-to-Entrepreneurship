@@ -11,6 +11,7 @@ import { preferencesKey } from './lib/preferences.ts';
 import type { Preferences } from './lib/preferences.ts';
 import { filterQuestions } from './lib/profile.ts';
 import type { ReviewFilter } from './lib/profile.ts';
+import { useQuizSession } from './lib/useQuizSession.ts';
 import { QuestionProgress } from './components/QuestionProgress.tsx';
 import { AttributesQuiz } from './components/AttributesQuiz.tsx';
 import { Results } from './components/Results.tsx';
@@ -27,6 +28,7 @@ export default function App() {
   const [current, setCurrent] = useState(initial.current);
   const [previous, setPrevious] = useState(initial.previous);
   const [language, setLanguage] = useState<Language>(initial.language);
+  const quiz = useQuizSession(language);
   const [screen, setScreen] = useState<Screen>('welcome');
   const get2Screen = useRef<Exclude<Screen, 'wp' | 'quiz-results'>>('welcome');
   const resultsMenu = useRef<HTMLDetailsElement>(null);
@@ -185,7 +187,8 @@ export default function App() {
     persist(preferencesKey, next);
   }
 
-  function clearData() {
+  async function clearData() {
+    if (!await quiz.clear()) { setDeleteError(true); return; }
     transact(() => {
       if (!deleteTestData()) { setDeleteError(true); return; }
       setSession(null); setCurrent(null); setPrevious(null);
@@ -224,7 +227,7 @@ export default function App() {
   }, { agree: 0, disagree: 0, unknown: 0 });
 
   const visibleQuestions = session ? filterQuestions(session.questionOrder, session.answers, reviewFilter) : [];
-  const hasTestData = Boolean(session || current || previous);
+  const hasTestData = Boolean(session || current || previous || quiz.session);
   const openPanel = (next: Panel) => { setDeleteError(false); setPanel(next); };
   const panelTitle = panel === 'restart' ? t.restartTitle : panel === 'delete' ? t.deleteTitle : panel === 'privacy' ? t.privacyTitle : panel === 'about' ? t.aboutTitle : t.preferences;
 
@@ -268,7 +271,7 @@ export default function App() {
 
     <main id="main" className={`main-content ${screen}`}>
       {storageError && <p className="storage-notice" role="alert">{t.storageError}</p>}
-      {(screen === 'wp' || screen === 'quiz-results') && <AttributesQuiz language={language} showResults={screen === 'quiz-results'} shortcutsEnabled={!panel} />}
+      {(screen === 'wp' || screen === 'quiz-results') && <AttributesQuiz quiz={quiz} language={language} showResults={screen === 'quiz-results'} shortcutsEnabled={!panel} />}
       {screen === 'results' && !current && <section className="page-heading"><h1 tabIndex={-1} data-page-heading>{t.testResultsNav}</h1><p>{t.noTestResults}</p><button className="button primary" onClick={() => setScreen(session && !session.completed ? 'question' : 'welcome')}>{session && !session.completed ? t.continue : t.start}</button></section>}
       {screen === 'welcome' && <>
         <section className="welcome-hero">
