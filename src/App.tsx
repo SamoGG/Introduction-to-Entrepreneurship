@@ -11,12 +11,13 @@ import { preferencesKey } from './lib/preferences.ts';
 import type { Preferences } from './lib/preferences.ts';
 import { filterQuestions } from './lib/profile.ts';
 import type { ReviewFilter } from './lib/profile.ts';
+import { QuestionProgress } from './components/QuestionProgress.tsx';
 import { AttributesQuiz } from './components/AttributesQuiz.tsx';
 import { Results } from './components/Results.tsx';
 import { FlagIcon, Icon } from './components/Icon.tsx';
 
 type Panel = 'restart' | 'delete' | 'privacy' | 'about' | 'preferences';
-type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp';
+type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp' | 'quiz-results';
 const answerChoices: Answer[] = ['agree', 'disagree', 'unknown'];
 
 export default function App() {
@@ -27,7 +28,8 @@ export default function App() {
   const [previous, setPrevious] = useState(initial.previous);
   const [language, setLanguage] = useState<Language>(initial.language);
   const [screen, setScreen] = useState<Screen>('welcome');
-  const get2Screen = useRef<Exclude<Screen, 'wp'>>('welcome');
+  const get2Screen = useRef<Exclude<Screen, 'wp' | 'quiz-results'>>('welcome');
+  const resultsMenu = useRef<HTMLDetailsElement>(null);
   const [fromReview, setFromReview] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [changedElsewhere, setChangedElsewhere] = useState(false);
@@ -236,12 +238,26 @@ export default function App() {
         <span>{t.brand}<small>{t.brandNote}</small></span>
       </button>
       <nav className="page-tabs" aria-label={t.activities}>
-        <button aria-current={screen !== 'wp' ? 'page' : undefined} onClick={() => {
-          if (screen === 'wp') setScreen(get2Screen.current);
+        <button aria-current={!['wp', 'results', 'quiz-results'].includes(screen) ? 'page' : undefined} onClick={() => {
+          if (screen === 'wp' || screen === 'quiz-results' || screen === 'results') setScreen(get2Screen.current === 'results' ? 'welcome' : get2Screen.current);
         }}>{language === 'en' ? 'GET2 Test' : 'Τεστ GET2'}</button>
         <button aria-current={screen === 'wp' ? 'page' : undefined} onClick={() => {
-          if (screen !== 'wp') { get2Screen.current = screen; setScreen('wp'); }
+          if (screen !== 'wp') { if (screen !== 'quiz-results') get2Screen.current = screen; setScreen('wp'); }
         }}>{t.attributeMatch}</button>
+        <details className="results-menu" ref={resultsMenu} onBlur={event => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) event.currentTarget.open = false;
+        }} onKeyDown={event => {
+          if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); }
+        }}>
+          <summary aria-current={screen === 'results' || screen === 'quiz-results' ? 'page' : undefined}>{t.resultsNav}<Icon name="chevron-down" /></summary>
+          <div className="results-menu-options">
+            {(['results', 'quiz-results'] as const).map(destination => <button key={destination} aria-current={screen === destination ? 'page' : undefined} onClick={() => {
+              if (screen !== 'wp' && screen !== 'quiz-results' && screen !== 'results') get2Screen.current = screen;
+              setScreen(destination);
+              if (resultsMenu.current) resultsMenu.current.open = false;
+            }}>{destination === 'results' ? t.testResultsNav : t.quizResultsNav}</button>)}
+          </div>
+        </details>
       </nav>
       <div className="language-switch" role="group" aria-label={t.language}>
         <button lang="en" aria-label="English" aria-pressed={language === 'en'} onClick={() => switchLanguage('en')}><FlagIcon language="en" /><span>EN</span></button>
@@ -252,7 +268,8 @@ export default function App() {
 
     <main id="main" className={`main-content ${screen}`}>
       {storageError && <p className="storage-notice" role="alert">{t.storageError}</p>}
-      {screen === 'wp' && <AttributesQuiz language={language} />}
+      {(screen === 'wp' || screen === 'quiz-results') && <AttributesQuiz language={language} showResults={screen === 'quiz-results'} shortcutsEnabled={!panel} />}
+      {screen === 'results' && !current && <section className="page-heading"><h1 tabIndex={-1} data-page-heading>{t.testResultsNav}</h1><p>{t.noTestResults}</p><button className="button primary" onClick={() => setScreen(session && !session.completed ? 'question' : 'welcome')}>{session && !session.completed ? t.continue : t.start}</button></section>}
       {screen === 'welcome' && <>
         <section className="welcome-hero">
           <p className="eyebrow"><span aria-hidden="true" className="tiny-line" />{t.eyebrow}</p>
@@ -282,8 +299,7 @@ export default function App() {
 
       {screen === 'question' && session && question && <>
         <div className="question-topline"><span id="question-position" className="eyebrow">{t.question} {session.currentIndex + 1} {t.of} 54</span><button className="text-button" onClick={() => setScreen('review')}>{fromReview ? t.backReview : t.review}<Icon name="external" /></button></div>
-        <div className="progress-track" role="progressbar" aria-label={t.answeredLabel} aria-valuetext={`${answeredCount} ${t.of} 54`} aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={54}><span style={{ width: `${answeredCount / 54 * 100}%` }} /></div>
-        <div className="progress-caption"><span>{t.answeredLabel} {answeredCount} / 54</span><span>{Math.round(answeredCount / 54 * 100)}% {t.complete}</span></div>
+        <QuestionProgress answered={answeredCount} language={language} />
         <section className="question-card">
           <p className="question-intro">{t.questionInstruction}</p>
           <h1 id="question-text" aria-describedby="question-position" tabIndex={-1} data-page-heading>{language === 'en' ? question.english : question.greek}</h1>

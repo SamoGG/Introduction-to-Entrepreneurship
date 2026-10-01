@@ -63,3 +63,40 @@ test('Greek quiz fits mobile, dark, high contrast and larger text; native keyboa
   await expect(page.getByRole('radio').nth(1)).toBeChecked();
   await page.keyboard.press('Enter'); await expect(page.locator('#quiz-position')).toContainText('2');
 });
+
+test('quiz numeric shortcuts follow displayed options and share test progress; results menu opens saved results', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'English', exact: true }).click();
+  const menu = page.locator('.results-menu summary');
+  await menu.click();
+  await page.getByRole('button', { name: 'GET2 Test Results', exact: true }).click();
+  await expect(page.getByText('Complete the GET2 test to see your results here.')).toBeVisible();
+  await menu.click(); await page.keyboard.press('Escape');
+  await expect(page.locator('.results-menu')).not.toHaveAttribute('open');
+  await menu.click();
+  await page.getByRole('button', { name: 'Attributes Quiz Results', exact: true }).click();
+  await expect(page.getByText('Complete the attributes quiz to see your results here.')).toBeVisible();
+  await page.getByRole('button', { name: 'Attributes Quiz', exact: true }).click();
+  const cards = page.locator('.learning-cards .attribute-card');
+  const first = await cards.first().boundingBox(); const last = await cards.last().boundingBox();
+  expect(last!.width).toBeGreaterThan(first!.width * 2);
+  await page.getByRole('button', { name: 'Take the Quiz', exact: true }).click();
+  await page.keyboard.press('5'); await expect(page.getByRole('radio').nth(4)).toBeChecked();
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
+  await expect(page.locator('.progress-caption')).toContainText('2% complete');
+  await page.keyboard.press('2'); await expect(page.getByRole('radio').nth(1)).toBeChecked();
+  await page.keyboard.press('Enter'); await expect(page.locator('#quiz-position')).toContainText('2 of 54');
+  await page.keyboard.press('ArrowLeft'); await expect(page.getByRole('radio').nth(1)).toBeChecked();
+  await page.evaluate(({ key, answers }) => {
+    const saved = JSON.parse(localStorage.getItem(key)!);
+    localStorage.setItem(key, JSON.stringify({ ...saved, answers, completed: true }));
+  }, { key, answers: Object.fromEntries(questions.map(q => [q.id, q.category])) });
+  await page.reload(); await menu.click();
+  await page.getByRole('button', { name: 'Attributes Quiz Results', exact: true }).click();
+  await expect(page.locator('.quiz-score')).toContainText('54 / 54');
+  await expect(page.locator('.results-menu')).not.toHaveAttribute('open');
+  await page.getByRole('button', { name: 'Ελληνικά', exact: true }).click();
+  await expect(page.locator('.quiz-score')).toContainText('54 / 54');
+  await page.setViewportSize({ width: 320, height: 740 }); await menu.click();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

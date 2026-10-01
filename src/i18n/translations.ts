@@ -1,6 +1,11 @@
 import type { Language } from '../lib/storage.ts';
 
 const en = {
+  resultsNav: "Results",
+  testResultsNav: "GET2 Test Results",
+  quizResultsNav: "Attributes Quiz Results",
+  noTestResults: "Complete the GET2 test to see your results here.",
+  noQuizResults: "Complete the attributes quiz to see your results here.",
   activities: "Activities",
   attributeMatch: "Attributes Quiz",
   wpTitle: "Match questions to attributes",
@@ -176,6 +181,11 @@ const en = {
 };
 
 const el: typeof en = {
+  resultsNav: "Αποτελέσματα",
+  testResultsNav: "Αποτελέσματα Τεστ GET2",
+  quizResultsNav: "Αποτελέσματα Κουίζ Χαρακτηριστικών",
+  noTestResults: "Ολοκλήρωσε το τεστ GET2 για να δεις εδώ τα αποτελέσματά σου.",
+  noQuizResults: "Ολοκλήρωσε το κουίζ χαρακτηριστικών για να δεις εδώ τα αποτελέσματά σου.",
   activities: "Δραστηριότητες",
   attributeMatch: "Κουίζ Χαρακτηριστικών",
   wpTitle: "Αντιστοίχιση ερωτήσεων με χαρακτηριστικά",
