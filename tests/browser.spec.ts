@@ -334,7 +334,7 @@ test('first-visit language, saved preferences, modal focus and safe deletion', a
   await page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
   await settleWrites(page);
   await expect(page.getByRole('button', { name: 'Start Test', exact: true })).toBeVisible();
-  await expect(page.getByRole('status')).toHaveText('Saved test data deleted.');
+  await expect(page.getByRole('status')).toHaveText('Saved test and quiz data deleted.');
   expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual(['get2-language', 'get2-preferences']);
   await expect(page.getByRole('button', { name: 'Delete Saved Data' })).toHaveCount(0);
   await context.close();
@@ -531,16 +531,16 @@ test('three positives and nine unknowns show 3/12 in screen, copy and print', as
   await expect(dimension.locator('.dimension-score')).toHaveText('3 / 12');
   await expect(dimension.locator('.classification')).toHaveText('Low');
   await expect(dimension).toContainText('Response coverage: 25%');
-  await expect(dimension).toContainText('Unknown responses: 9');
+  await expect(dimension).toContainText('“I don’t know” responses: 9');
   await dimension.locator('summary').click();
   await expect(dimension.locator('.calculation')).toContainText('3 / 12 = 25%');
   await expect(dimension.locator('.calculation')).not.toContainText('×');
   await page.getByRole('button', { name: 'Copy Results', exact: true }).click();
   await settleWrites(page);
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Creative Tendency\n3 / 12 — Low\nResponse coverage: 25% (3 / 12)\nUnknown responses: 9');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Creative Tendency\n3 / 12 — Low\nResponse coverage: 25% (3 / 12)\n“I don’t know” responses: 9');
   await page.emulateMedia({ media: 'print' });
   await expect(dimension.locator('.dimension-score')).toBeVisible();
-  await expect(dimension.getByText('Unknown responses: 9', { exact: true })).toBeVisible();
+  await expect(dimension.getByText('“I don’t know” responses: 9', { exact: true })).toBeVisible();
   await expect(dimension.locator('.dimension-coverage')).toBeVisible();
 });
 

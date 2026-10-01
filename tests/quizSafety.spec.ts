@@ -67,13 +67,15 @@ test('stale tabs cannot overwrite submitted answers or restore deleted quiz data
   await expect(page.locator('.quiz-score')).toContainText('54 / 54');
   await settle(page);
   const completed = await page.evaluate(k => localStorage.getItem(k), quizKey);
-  await stale.getByRole('radio').first().click(); await settle(stale);
+  // Choose a different option: clicking an already checked randomized radio emits no change.
+  await stale.locator('input[type="radio"]:not(:checked)').first().check(); await settle(stale);
   expect(await page.evaluate(k => localStorage.getItem(k), quizKey)).toBe(completed);
   await expect(stale.getByText('Quiz data changed in another tab. The latest saved progress has been loaded.')).toBeVisible();
   await page.getByRole('button', { name: 'Retake Quiz' }).click(); await settle(page);
   await stale.reload(); await openQuiz(stale); await stale.getByRole('button', { name: 'Continue Quiz' }).click();
   await page.evaluate(k => localStorage.removeItem(k), quizKey);
-  await stale.getByRole('radio').first().click(); await settle(stale);
+  // Choose a different option: clicking an already checked randomized radio emits no change.
+  await stale.locator('input[type="radio"]:not(:checked)').first().check(); await settle(stale);
   expect(await page.evaluate(k => localStorage.getItem(k), quizKey)).toBeNull();
   await expect(stale.getByRole('button', { name: 'Take the Quiz' })).toBeVisible();
 });

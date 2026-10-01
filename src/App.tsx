@@ -243,7 +243,7 @@ export default function App() {
       <nav className="page-tabs" aria-label={t.activities}>
         <button aria-current={!['wp', 'results', 'quiz-results'].includes(screen) ? 'page' : undefined} onClick={() => {
           if (screen === 'wp' || screen === 'quiz-results' || screen === 'results') setScreen(get2Screen.current === 'results' ? 'welcome' : get2Screen.current);
-        }}>{language === 'en' ? 'GET2 Test' : 'Τεστ GET2'}</button>
+        }}>{t.get2Nav}</button>
         <button aria-current={screen === 'wp' ? 'page' : undefined} onClick={() => {
           if (screen !== 'wp') { if (screen !== 'quiz-results') get2Screen.current = screen; setScreen('wp'); }
         }}>{t.attributeMatch}</button>
@@ -335,7 +335,7 @@ export default function App() {
           {visibleQuestions.length === 0 && <p className="empty-filter">{t.emptyFilter}</p>}
           <nav className="question-grid" aria-label={t.navigator}>{visibleQuestions.map(({ id, index }) => {
             const answer = session.answers[id];
-            return <button key={id} className={answer === 'unknown' ? 'unknown' : answer ? 'normal' : 'unanswered'} aria-label={`${t.question} ${index + 1}: ${answer ? t[answer] : t.unanswered}`} onClick={() => transact(() => { updateSession({ ...session, currentIndex: index }); setFromReview(true); setScreen('question'); })}>{index + 1}<small aria-hidden="true">{answer === 'unknown' ? <Icon name="help" /> : answer ? <Icon name="check" /> : <Icon name="minus" />}</small></button>;
+            return <button key={id} className={answer === 'unknown' ? 'unknown' : answer ? 'normal' : 'unanswered'} aria-label={`${t.question} ${index + 1}: ${answer ? t[answer] : t.questionUnanswered}`} onClick={() => transact(() => { updateSession({ ...session, currentIndex: index }); setFromReview(true); setScreen('question'); })}>{index + 1}<small aria-hidden="true">{answer === 'unknown' ? <Icon name="help" /> : answer ? <Icon name="check" /> : <Icon name="minus" />}</small></button>;
           })}</nav>
           <p className={`review-readiness ${answeredCount === 54 ? 'ready' : ''}`}>{answeredCount === 54 ? t.ready : t.remaining}</p>
           <button className="button primary calculate-button" disabled={answeredCount !== 54} onClick={finish}>{t.calculate}<Icon name="arrow-right" /></button>
@@ -348,13 +348,14 @@ export default function App() {
 
     <footer className="site-footer no-print">
       <div className="footer-privacy"><Icon name="lock" className="footer-lock" /><p>{t.privacy}</p></div>
-      <nav aria-label={t.preferences} className="footer-links">
+      <nav aria-label={t.footerNavigation} className="footer-links">
         <button className="text-button" onClick={() => openPanel('preferences')}>{t.preferences}</button>
         <button className="text-button" onClick={() => openPanel('privacy')}>{t.privacyTitle}</button>
         <button className="text-button" onClick={() => openPanel('about')}>{t.aboutTitle}</button>
         {hasTestData && <button className="text-button" onClick={() => openPanel('delete')}>{t.deleteData}</button>}
       </nav>
       <p className="footer-credit">{t.madeBy}</p>
+      <p className="footer-credit">{t.aiDisclosure}</p>
     </footer>
     {panel && <Modal title={panelTitle} closeLabel={t.close} onClose={() => setPanel(null)}>
       {panel === 'preferences' ? <div className="preferences-panel">
@@ -362,8 +363,8 @@ export default function App() {
           {(['system', 'light', 'dark'] as const).map(theme => <label key={theme}><input type="radio" name="theme" checked={preferences.theme === theme} onChange={() => changePreference({ ...preferences, theme })} />{t[theme]}</label>)}
         </div></fieldset>
         {(['largerText', 'highContrast', 'reduceMotion'] as const).map(key => <label className="preference-option" key={key}><input type="checkbox" checked={preferences[key]} onChange={event => changePreference({ ...preferences, [key]: event.target.checked })} />{t[key]}</label>)}
-      </div> : panel === 'privacy' ? <div className="info-panel"><p>{t.privacyBody}</p><p>{t.privacyExtra}</p></div>
-        : panel === 'about' ? <div className="info-panel"><p>{t.aboutBody}</p><p>{t.aboutScoring}</p><p>{t.disclaimer}</p></div>
+      </div> : panel === 'privacy' ? <div className="info-panel"><p>{t.privacyBody}</p><p>{t.privacyStorage}</p><p>{t.privacyControl}</p><p>{t.privacyExtra}</p><p>{t.privacyHosting}</p><p className="small-note">{t.privacyUpdated}: <time dateTime="2026-10-01">{t.privacyDate}</time></p></div>
+        : panel === 'about' ? <div className="info-panel"><p>{t.aboutBody}</p><p>{t.aboutScoring}</p><p>{t.aboutQuiz}</p><p>{t.disclaimer}</p></div>
         : <>
           <p>{panel === 'restart' ? t.restartMessage : t.deleteMessage}</p>
           {deleteError && <p role="alert" className="delete-error">{t.deleteFailed}</p>}
