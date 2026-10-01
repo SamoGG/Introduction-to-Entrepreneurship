@@ -1,5 +1,7 @@
 export const quizTranslations = {
   en: {
+    expandReview: 'Show answers and explanations',
+    collapseReview: 'Hide answers and explanations',
     chooseAttribute: 'Select attribute',
     title: 'Understanding the Five Entrepreneurial Attributes',
     intro: 'GET2 groups its statements into five characteristics associated with enterprising behaviour. Learn to recognise what each statement is intended to measure. This is a knowledge quiz, not a personality assessment or a clinical personality model. These are typical characteristics, not a checklist that every person must display.',
@@ -32,6 +34,8 @@ export const quizTranslations = {
     bands: ['Excellent understanding', 'Very good understanding', 'Good understanding', 'Developing understanding', 'Review recommended'], feedback: ['Strong understanding', 'Generally understood', 'Worth reviewing', 'Review this attribute'],
   },
   el: {
+    expandReview: 'Εμφάνιση απαντήσεων και εξηγήσεων',
+    collapseReview: 'Απόκρυψη απαντήσεων και εξηγήσεων',
     chooseAttribute: 'Επιλογή χαρακτηριστικού',
     title: 'Κατανόηση των Πέντε Επιχειρηματικών Χαρακτηριστικών',
     intro: 'Το GET2 ομαδοποιεί τις δηλώσεις του σε πέντε χαρακτηριστικά που συνδέονται με την επιχειρηματική συμπεριφορά. Μάθε να αναγνωρίζεις τι έχει σχεδιαστεί να μετρά κάθε δήλωση. Πρόκειται για κουίζ γνώσεων, όχι για αξιολόγηση προσωπικότητας ή κλινικό μοντέλο. Τα γνωρίσματα είναι ενδεικτικά και δεν εμφανίζονται απαραίτητα όλα σε κάθε άτομο.',

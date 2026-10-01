@@ -526,3 +526,17 @@ h1, h2, h3, p, label, td, th { overflow-wrap: anywhere; }
   .page-tabs { flex-wrap: wrap; }
   .results-menu-options { position: fixed; top: auto; right: 20px; left: 20px; width: auto; }
 }
+
+.quiz-attribute-progress { height: 8px; margin: 14px 0; }
+.attributes-quiz .quiz-review { padding: 0; border: 2px solid var(--border-strong); }
+.attributes-quiz .quiz-review > summary { min-height: 88px; padding: 20px 24px; background: var(--soft); border-radius: 10px; gap: 20px; }
+.attributes-quiz .quiz-review > summary:hover { background: var(--track); }
+.quiz-review-title { display: block; font-size: 1.125rem; line-height: 1.5; }
+.quiz-review-hint { display: block; margin-top: 5px; font-size: .875rem; line-height: 1.5; font-weight: 400; color: var(--muted); }
+.attributes-quiz .quiz-review > summary > .icon { width: 24px; height: 24px; flex-shrink: 0; }
+.quiz-review .quiz-review-collapse, .quiz-review[open] .quiz-review-expand { display: none; }
+.quiz-review[open] .quiz-review-collapse { display: block; }
+.quiz-review[open] > summary { border-radius: 10px 10px 0 0; border-bottom: 1px solid var(--border); }
+.quiz-review > .quiz-correction { margin: 0 24px; padding: 24px 0; }
+.quiz-review > .quiz-correction:first-of-type { border-top: 0; }
+.quiz-review > p { padding: 24px; }
