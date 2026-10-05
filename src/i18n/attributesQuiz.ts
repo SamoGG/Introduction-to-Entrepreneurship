@@ -1,5 +1,6 @@
 export const quizTranslations = {
   en: {
+    inDepthExplanation: 'More in-depth explanations of the five attributes',
     instantFeedback: 'Show instant feedback',
     instantFeedbackHelp: 'Choose an option and submit your answer to see whether it is correct, the correct attribute and an explanation before moving on. Submitted answers cannot be changed.',
     submitAnswer: 'Submit answer',
@@ -46,6 +47,7 @@ export const quizTranslations = {
     bands: ['Excellent understanding', 'Very good understanding', 'Good understanding', 'Developing understanding', 'Review recommended'], feedback: ['Strong understanding', 'Generally understood', 'Worth reviewing', 'Review this attribute'],
   },
   el: {
+    inDepthExplanation: 'Πιο αναλυτικές εξηγήσεις για τα πέντε χαρακτηριστικά',
     instantFeedback: 'Άμεση ανατροφοδότηση',
     instantFeedbackHelp: 'Επιλέξτε και υποβάλετε την απάντησή σας για να δείτε αν είναι σωστή, το σωστό χαρακτηριστικό και μια εξήγηση πριν συνεχίσετε. Οι απαντήσεις που υποβάλλονται δεν αλλάζουν.',
     submitAnswer: 'Υποβολή απάντησης',

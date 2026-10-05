@@ -10,7 +10,7 @@ Accessibility includes a skip link, semantic landmarks and headings, native butt
 
 Storage is local to the browser, with no application backend, accounts, cookies, analytics or tracking. Storage failures are reported and in-memory progress remains usable. The privacy dialog distinguishes application data handling from possible technical request logging by the hosting provider.
 
-GET/GET2 research is attributed to Sally Caird and Cliff Johnson on the welcome screen, in About and in the quiz learning area. The linked source is Sally Caird (2013), “General measure of Enterprising Tendency test”, at The Open University's Open Research Online: <https://oro.open.ac.uk/5393/>. The reference explicitly identifies this application as an independent implementation. It is separate from footer implementation credits to Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas and the disclosure that development used AI assistance.
+GET/GET2 research is attributed to Sally Caird and Cliff Johnson in About and in the quiz learning area. The linked source is Sally Caird (2013), “General measure of Enterprising Tendency test”, at The Open University's Open Research Online: <https://oro.open.ac.uk/5393/>. The reference explicitly identifies this application as an independent implementation. It is separate from footer implementation credits to Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas and the disclosure that development used AI assistance.
 
 # GET2 Test
 
@@ -32,13 +32,11 @@ The five dimensions are:
 | Calculated Risk-Taking | 12 | Evaluating uncertain opportunities and their likely consequences |
 | Internal Locus of Control | 12 | Connecting outcomes with personal actions, decisions and effort |
 
-On the welcome screen, the five dimension tags are keyboard-accessible external links styled as buttons. Each opens <http://www.get2test.net/index.html#enterprisingPotential> for detailed explanations on the original GET2 website. They retain full translated names and visible focus indicators.
-
 Restarting an unfinished GET2 test requires confirmation and clears its answers with a new order. Retaking a completed test preserves that result as the previous result. Restarting an unfinished retake does not replace the previous completed result.
 
 # Attributes Quiz
 
-This is an educational classification exercise, not an assessment of the user's personality or entrepreneurial tendency. Its learning screen explains the five attributes, lists typical traits and gives a practice example. A shared source area after the cards links to the original GET2 resource and explains that these characteristics are part of the GET/GET2 framework, not a definitive psychological model.
+This is an educational classification exercise, not an assessment of the user's personality or entrepreneurial tendency. Its learning screen explains the five attributes, lists typical traits and gives a practice example. Below the five cards, a “More in-depth explanations of the five attributes” link opens <http://www.get2test.net/index.html#enterprisingPotential>, using the same destination previously linked from the GET2 welcome screen. The duplicate welcome-screen dimensions section has been removed. A shared source area after the cards links to the original GET2 resource and explains that these characteristics are part of the GET/GET2 framework, not a definitive psychological model.
 
 The same 54 statements are presented in randomized order. Each statement has five attribute options, with a randomized option order saved separately for every question. Users identify the intended category, including when a statement is phrased negatively.
 

@@ -74,6 +74,7 @@ export function AttributesQuiz({ quiz, language, showResults = false, shortcutsE
     {screen === 'learn' && <>
       <header className="page-heading"><h1 ref={heading} tabIndex={-1} data-page-heading>{q.title}</h1><p>{q.intro}</p></header>
       <div className="attribute-cards learning-cards">{categories.map(c => <article className="attribute-card" key={c}><h2>{t[c]}</h2><p>{q.definitions[c]}</p><ul>{q.traits[c].map(trait => <li key={trait}>{trait}</li>)}</ul></article>)}</div>
+      <p><a className="text-button" href="http://www.get2test.net/index.html#enterprisingPotential" target="_blank" rel="noopener noreferrer">{q.inDepthExplanation}<Icon name="external" /></a></p>
       <SourceReference language={language} study />
       <aside className="attribute-card"><h2>{q.example}</h2><p>{q.exampleText}</p><p><strong>{t.autonomy}</strong> — {q.exampleWhy}</p></aside>
       <p className="quiz-note">{q.note}</p><p>{q.facts}</p>

@@ -6,29 +6,26 @@ import { createQuiz, quizKey } from '../src/lib/attributesQuiz.ts';
 
 for (const language of ['en', 'el'] as const) {
   const t = translations[language]; const q = quizTranslations[language];
-  test(`${language}: keyboard dimension explanations and safe localized source links`, async ({ page }) => {
+  test(`${language}: quiz explanation link and safe localized source links`, async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: language === 'en' ? 'English' : 'Ελληνικά', exact: true }).click();
-    const links = page.locator('.dimension-tags a');
-    await expect(links).toHaveCount(5);
-    for (const category of categories) {
-      const link = links.filter({ hasText: t[category] });
-      await link.focus();
-      await expect(link).toBeFocused();
-      await expect(link).toHaveAttribute('href', 'http://www.get2test.net/index.html#enterprisingPotential');
-      await expect(link).toHaveAttribute('target', '_blank');
-      await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
-    }
+    await expect(page.locator('.framework')).toHaveCount(0);
+    await page.getByRole('button', { name: t.aboutTitle, exact: true }).click();
+    await expect(page.getByRole('dialog').getByRole('link', { name: t.sourceLink })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: t.attributeMatch, exact: true }).click();
+    await expect(page.locator('.learning-cards .attribute-card')).toHaveCount(5);
+    const detailed = page.getByRole('link', { name: q.inDepthExplanation, exact: true });
+    await detailed.focus();
+    await expect(detailed).toBeFocused();
+    await expect(detailed).toHaveAttribute('href', 'http://www.get2test.net/index.html#enterprisingPotential');
+    await expect(detailed).toHaveAttribute('target', '_blank');
+    await expect(detailed).toHaveAttribute('rel', 'noopener noreferrer');
     const source = page.getByRole('link', { name: t.sourceLink, exact: true });
     await expect(source).toHaveAttribute('href', 'https://oro.open.ac.uk/5393/');
     await expect(source).toHaveAttribute('target', '_blank');
     await expect(source).toHaveAttribute('rel', 'noopener noreferrer');
     await expect(page.locator('.source-reference')).toContainText(t.sourceAttribution);
-    await page.getByRole('button', { name: t.aboutTitle, exact: true }).click();
-    await expect(page.getByRole('dialog').getByRole('link', { name: t.sourceLink })).toBeVisible();
-    await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: t.attributeMatch, exact: true }).click();
-    await expect(source).toBeVisible();
     await expect(page.locator('.source-reference')).toContainText(t.sourceStudy);
     const mode = page.getByRole('checkbox', { name: q.instantFeedback });
     await expect(mode).not.toBeChecked();

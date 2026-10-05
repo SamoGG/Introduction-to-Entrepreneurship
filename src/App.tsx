@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { categories, questions } from './data/questions.ts';
+import { questions } from './data/questions.ts';
 import { translations } from './i18n/translations.ts';
 import { calculateResult } from './lib/scoring.ts';
 import type { Answer } from './lib/scoring.ts';
@@ -298,7 +298,6 @@ export default function App() {
           <p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p>
         </section>
 
-        <section className="framework"><h2>{t.framework}</h2><div className="dimension-tags">{categories.map(category => <a key={category} href="http://www.get2test.net/index.html#enterprisingPotential" target="_blank" rel="noopener noreferrer">{t[category]} <Icon name="external" /></a>)}</div><p>{t.dimensionHint}</p><p>{t.frameworkNote}</p><SourceReference language={language} /></section>
       </>}
 
       {screen === 'question' && session && question && <>
