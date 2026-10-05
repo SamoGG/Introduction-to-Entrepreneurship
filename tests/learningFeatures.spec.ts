@@ -1,0 +1,126 @@
+import { test, expect } from '@playwright/test';
+import { categories, questions } from '../src/data/questions.ts';
+import { translations } from '../src/i18n/translations.ts';
+import { quizTranslations } from '../src/i18n/attributesQuiz.ts';
+import { createQuiz, quizKey } from '../src/lib/attributesQuiz.ts';
+
+for (const language of ['en', 'el'] as const) {
+  const t = translations[language]; const q = quizTranslations[language];
+  test(`${language}: keyboard dimension explanations and safe localized source links`, async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: language === 'en' ? 'English' : 'Ελληνικά', exact: true }).click();
+    const buttons = page.locator('.dimension-tags button');
+    await expect(buttons).toHaveCount(5);
+    for (const category of categories) {
+      const button = buttons.filter({ hasText: t[category] });
+      await button.focus(); await page.keyboard.press('Enter');
+      await expect(button).toHaveAttribute('aria-expanded', 'true');
+      await expect(page.locator('#dimension-explanation')).toHaveText(t[`${category}Description`]);
+      await expect(page.locator('.dimension-tags button[aria-expanded="true"]')).toHaveCount(1);
+    }
+    await page.keyboard.press('Space');
+    await expect(page.locator('#dimension-explanation')).toBeHidden();
+    const source = page.getByRole('link', { name: t.sourceLink, exact: true });
+    await expect(source).toHaveAttribute('href', 'https://oro.open.ac.uk/5393/');
+    await expect(source).toHaveAttribute('target', '_blank');
+    await expect(source).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(page.locator('.source-reference')).toContainText(t.sourceAttribution);
+    await page.getByRole('button', { name: t.aboutTitle, exact: true }).click();
+    await expect(page.getByRole('dialog').getByRole('link', { name: t.sourceLink })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: t.attributeMatch, exact: true }).click();
+    await expect(source).toBeVisible();
+    await expect(page.locator('.source-reference')).toContainText(t.sourceStudy);
+    await expect(page.getByRole('checkbox', { name: q.instantFeedback })).not.toBeChecked();
+    await page.getByRole('button', { name: q.start, exact: true }).click();
+    await page.getByRole('radio').first().check();
+    await expect(page.locator('.instant-feedback')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: t.next, exact: true })).toBeEnabled();
+  });
+
+  test(`${language}: feedback identifies correct and incorrect choices, guards Next and resumes`, async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: language === 'en' ? 'English' : 'Ελληνικά', exact: true }).click();
+    await page.getByRole('button', { name: t.attributeMatch, exact: true }).click();
+    await page.getByRole('checkbox', { name: q.instantFeedback }).check();
+    await page.getByRole('button', { name: q.start, exact: true }).click();
+    await page.evaluate(() => navigator.locks.request('attributes-quiz-data', () => {}));
+    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), quizKey);
+    expect(saved.instantFeedback).toBe(true);
+    const question = questions.find(item => item.id === saved.questionOrder[0])!;
+    const wrong = categories.find(category => category !== question.category)!;
+    await page.clock.install();
+    await page.getByRole('radio', { name: t[wrong], exact: true }).check();
+    const feedback = page.locator('.instant-feedback');
+    await expect(feedback).toHaveCount(0);
+    await expect(page.locator('.quiz-option-correct')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: t.next, exact: true })).toBeHidden();
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
+    await page.evaluate(() => navigator.locks.request('attributes-quiz-data', () => {}));
+    expect(await page.evaluate(key => Object.keys(JSON.parse(localStorage.getItem(key)!).answers).length, quizKey)).toBe(0);
+    // Choosing an option alone must not save it or reveal correctness.
+    await page.getByRole('button', { name: q.submitAnswer, exact: true }).click();
+    await expect(feedback).toContainText(q.feedbackIncorrect);
+    await expect(page.locator('.quiz-option-incorrect')).toContainText(t[wrong]);
+    await expect(page.locator('.quiz-option-incorrect')).toContainText(q.yourIncorrectAnswer);
+    await expect(page.locator('.quiz-option-correct')).toContainText(t[question.category]);
+    await expect(page.locator('.quiz-option-correct')).toContainText(q.correctAnswer);
+    await expect(page.locator('.quiz-option-incorrect input')).toBeChecked();
+    await expect(page.locator('.quiz-option-correct input')).not.toBeChecked();
+    await expect(page.getByRole('radio').first()).toBeDisabled();
+    await page.keyboard.press('1');
+    await expect(page.locator('.quiz-option-incorrect input')).toBeChecked();
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
+    await expect(feedback).toContainText(t[question.category]);
+    await expect(feedback).toContainText(q.explanations[question.category]);
+    await expect(feedback.locator('..')).toHaveAttribute('role', 'status');
+    await expect(page.getByRole('button', { name: t.next, exact: true })).toBeDisabled();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#quiz-position')).toHaveText(`${t.question} 1 ${t.of} 54`);
+    await page.clock.runFor(750);
+    await page.getByRole('button', { name: t.next, exact: true }).click();
+    await expect(page.locator('#quiz-position')).toHaveText(`${t.question} 2 ${t.of} 54`);
+    await expect(feedback).toHaveCount(0);
+    const second = questions.find(item => item.id === saved.questionOrder[1])!;
+    await page.getByRole('radio', { name: t[second.category], exact: true }).check();
+    await expect(feedback).toHaveCount(0);
+    await page.keyboard.press('Enter');
+    await expect(feedback).toContainText(q.feedbackCorrect);
+    await expect(page.locator('.quiz-option-correct input')).toBeChecked();
+    await expect(page.locator('.quiz-option-incorrect')).toHaveCount(0);
+    await expect(feedback).toContainText(q.explanations[second.category]);
+    await page.evaluate(() => navigator.locks.request('attributes-quiz-data', () => {}));
+    await page.reload();
+    await page.getByRole('button', { name: t.attributeMatch, exact: true }).click();
+    await expect(page.getByRole('checkbox', { name: q.instantFeedback })).toBeChecked();
+    await expect(page.getByRole('checkbox', { name: q.instantFeedback })).toBeDisabled();
+    await page.getByRole('button', { name: q.resume, exact: true }).click();
+    await expect(feedback).toContainText(q.feedbackCorrect);
+    await expect(page.locator('.quiz-option-correct input')).toBeDisabled();
+    await page.getByRole('button', { name: t.previous, exact: true }).click();
+    await expect(feedback).toContainText(q.feedbackIncorrect);
+    await expect(page.locator('.quiz-option-incorrect input')).toBeChecked();
+    await expect(page.locator('.quiz-option-correct')).toContainText(t[question.category]);
+    if (language === 'el') {
+      await expect(feedback).not.toContainText(quizTranslations.en.feedbackCorrect);
+      await expect(feedback).not.toContainText(quizTranslations.en.explanations[second.category]);
+    }
+  });
+
+  test(`${language}: normalized score is prominent and localized`, async ({ page }) => {
+    const session = createQuiz(language, true);
+    session.answers = Object.fromEntries(questions.map((item, index) => [item.id, index < 27 ? item.category : categories.find(c => c !== item.category)!]));
+    session.completed = true;
+    await page.addInitScript(({ key, session }) => {
+      localStorage.setItem(key, JSON.stringify(session));
+      localStorage.setItem('get2-language', JSON.stringify(session.language));
+    }, { key: quizKey, session });
+    await page.goto('/');
+    await page.locator('.results-menu summary').click();
+    await page.getByRole('button', { name: t.quizResultsNav, exact: true }).click();
+    await expect(page.getByText(q.totalScore, { exact: true })).toBeVisible();
+    await expect(page.locator('.quiz-score strong')).toHaveText('50 / 100');
+    await expect(page.locator('.quiz-score small')).toHaveText(`27 / 54 ${q.correctCount}`);
+    await expect(page.getByRole('heading', { name: q.bands[4], exact: true })).toBeVisible();
+  });
+}

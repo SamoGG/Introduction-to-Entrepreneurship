@@ -1,5 +1,14 @@
 export const quizTranslations = {
   en: {
+    instantFeedback: 'Show feedback after submitting each answer',
+    submitAnswer: 'Submit answer',
+    yourIncorrectAnswer: 'Your answer — incorrect',
+    draftAnswer: 'Answer selected. Submit it to see feedback and save your answer.',
+    feedbackCorrect: 'Correct — this statement relates to:',
+    feedbackIncorrect: 'Not quite. The correct attribute is:',
+    totalScore: 'Overall understanding score',
+    correctCount: 'correct',
+
     saving: 'Saving quiz progress…',
     updatedElsewhere: 'Quiz data changed in another tab. The latest saved progress has been loaded.',
     expandReview: 'Show answers and explanations',
@@ -36,12 +45,21 @@ export const quizTranslations = {
     bands: ['Excellent understanding', 'Very good understanding', 'Good understanding', 'Developing understanding', 'Review recommended'], feedback: ['Strong understanding', 'Generally understood', 'Worth reviewing', 'Review this attribute'],
   },
   el: {
+    instantFeedback: 'Εμφάνιση ανατροφοδότησης μετά την υποβολή κάθε απάντησης',
+    submitAnswer: 'Υποβολή απάντησης',
+    yourIncorrectAnswer: 'Η απάντησή σας — λανθασμένη',
+    draftAnswer: 'Η απάντηση επιλέχθηκε. Υποβάλετέ την για να αποθηκευτεί και να δείτε την ανατροφοδότηση.',
+    feedbackCorrect: 'Σωστά — η δήλωση σχετίζεται με το χαρακτηριστικό:',
+    feedbackIncorrect: 'Η απάντηση δεν είναι σωστή. Το σωστό χαρακτηριστικό είναι:',
+    totalScore: 'Συνολική βαθμολογία κατανόησης',
+    correctCount: 'σωστές απαντήσεις',
+
     saving: 'Αποθήκευση προόδου του κουίζ…',
     updatedElsewhere: 'Τα δεδομένα του κουίζ άλλαξαν σε άλλη καρτέλα. Φορτώθηκε η πιο πρόσφατη αποθηκευμένη πρόοδος.',
     expandReview: 'Εμφάνιση απαντήσεων και εξηγήσεων',
     collapseReview: 'Απόκρυψη απαντήσεων και εξηγήσεων',
     chooseAttribute: 'Επιλογή χαρακτηριστικού',
-    title: 'Κατανόηση των Πέντε Επιχειρηματικών Χαρακτηριστικών',
+    title: 'Κατανόηση των πέντε επιχειρηματικών χαρακτηριστικών',
     intro: 'Το GET2 ομαδοποιεί τις δηλώσεις του σε πέντε διαστάσεις αξιολόγησης που συνδέονται με την επιχειρηματική συμπεριφορά. Μάθετε να αναγνωρίζετε τι έχει σχεδιαστεί να μετρά κάθε δήλωση. Πρόκειται για κουίζ γνώσεων, όχι για αξιολόγηση προσωπικότητας ή κλινικό μοντέλο. Τα γνωρίσματα είναι ενδεικτικά και δεν εμφανίζονται απαραίτητα όλα σε κάθε άτομο.',
     note: 'Ορισμένες δηλώσεις είναι διατυπωμένες θετικά και άλλες αρνητικά. Στόχος σας είναι να αναγνωρίσετε ποιο χαρακτηριστικό έχει σχεδιαστεί να μετρά η δήλωση, όχι αν η ίδια η δήλωση δείχνει υψηλό επίπεδο αυτού του χαρακτηριστικού.',
     definitions: {
@@ -66,9 +84,9 @@ export const quizTranslations = {
       locus: 'Η δήλωση αφορά το αν τα αποτελέσματα θεωρούνται ότι επηρεάζονται από προσωπικές πράξεις και προσπάθεια ή κυρίως από εξωτερικές δυνάμεις.',
     },
     example: 'Παράδειγμα εξάσκησης', exampleText: '«Προτιμώ να βρίσκω τον δικό μου τρόπο ολοκλήρωσης μιας εργασίας αντί να ακολουθώ λεπτομερείς οδηγίες.»', exampleWhy: 'Αφορά την ανεξαρτησία και την εργασία με τον δικό σας τρόπο.',
-    start: 'Έναρξη Κουίζ', resume: 'Συνέχεια Κουίζ', facts: '54 δηλώσεις · 5 πιθανά χαρακτηριστικά', prompt: 'Με ποιο επιχειρηματικό χαρακτηριστικό σχετίζεται αυτή η δήλωση;',
-    remaining: 'Απομένουν', submit: 'Υποβολή Κουίζ', results: 'Η κατανόησή σας για τα πέντε επιχειρηματικά χαρακτηριστικά', retake: 'Επανάληψη Κουίζ', learn: 'Μάθετε τα χαρακτηριστικά',
+    start: 'Έναρξη κουίζ', resume: 'Συνέχεια κουίζ', facts: '54 δηλώσεις · 5 πιθανά χαρακτηριστικά', prompt: 'Με ποιο επιχειρηματικό χαρακτηριστικό σχετίζεται αυτή η δήλωση;',
+    remaining: 'Απομένουν', submit: 'Υποβολή κουίζ', results: 'Η κατανόησή σας για τα πέντε επιχειρηματικά χαρακτηριστικά', retake: 'Επανάληψη κουίζ', learn: 'Μάθετε τα χαρακτηριστικά',
     correct: 'Σωστές απαντήσεις', incorrect: 'Λανθασμένες απαντήσεις', byAttribute: 'Κατανόηση ανά χαρακτηριστικό', confusions: 'Χαρακτηριστικά που συγχέονται συχνότερα', confusedWith: 'αναγνωρίστηκε ως', times: 'φορές', reviewIncorrect: 'Επισκόπηση λανθασμένων απαντήσεων', yours: 'Η απάντησή σας', correctAnswer: 'Σωστή απάντηση', perfect: 'Δεν υπάρχουν λανθασμένες απαντήσεις.',
-    bands: ['Εξαιρετική κατανόηση', 'Πολύ καλή κατανόηση', 'Καλή κατανόηση', 'Αναπτυσσόμενη κατανόηση', 'Συνιστάται επανάληψη'], feedback: ['Ισχυρή κατανόηση', 'Καλή γενική κατανόηση', 'Αξίζει επανάληψη', 'Επαναλάβετε αυτό το χαρακτηριστικό'],
+    bands: ['Εξαιρετική κατανόηση', 'Πολύ καλή κατανόηση', 'Καλή κατανόηση', 'Κατανόηση σε εξέλιξη', 'Συνιστάται επανάληψη'], feedback: ['Πολύ καλή κατανόηση', 'Καλή γενική κατανόηση', 'Χρειάζεται επανάληψη', 'Μελετήστε ξανά αυτό το χαρακτηριστικό'],
   },
 };

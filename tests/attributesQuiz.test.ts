@@ -78,3 +78,31 @@ test('untrusted saved sessions reject malformed records and cannot fake completi
   for (const raw of ['{', 'null', '[]', 'x'.repeat(25_001)]) assert.equal(parseQuiz(raw), null);
   assert.equal(validQuizSession({...s, answers: correct, completed: true}), true);
 });
+
+test('normalized understanding score uses question totals, never the mean of dimensions', () => {
+  for (const count of [0, 27, 54]) {
+    const answers = { ...wrong, ...Object.fromEntries(questions.slice(0, count).map(q => [q.id, q.category])) };
+    const result = scoreQuiz(answers);
+    assert.equal(result.totalScore, count / 54 * 100);
+    assert.equal(result.percentage, result.totalScore);
+    for (const category of categories) {
+      const members = questions.filter(q => q.category === category);
+      const correctCount = members.filter(q => answers[q.id] === category).length;
+      assert.deepEqual(result.byAttribute[category], { correct: correctCount, total: members.length, percentage: correctCount / members.length * 100 });
+    }
+  }
+  const result = scoreQuiz(Object.fromEntries(questions.map(q => [q.id, 'autonomy' as const])));
+  assert.equal(result.totalScore, 6 / 54 * 100);
+  assert.notEqual(result.totalScore, categories.reduce((sum, c) => sum + result.byAttribute[c].percentage, 0) / 5);
+});
+
+test('feedback defaults off, persists in v2 and safely migrates v1 attempts', () => {
+  assert.equal(createQuiz('en').instantFeedback, false);
+  const session = createQuiz('el', true);
+  assert.deepEqual(parseQuiz(JSON.stringify(session)), session);
+  const { instantFeedback: _, ...legacy } = session;
+  assert.deepEqual(parseQuiz(JSON.stringify({ ...legacy, version: 1 })), { ...session, instantFeedback: false });
+  assert.equal(validQuizSession({ ...session, instantFeedback: 'true' }), false);
+  assert.equal(parseQuiz(JSON.stringify({ ...legacy, version: 2 })), null);
+  assert.equal(parseQuiz(JSON.stringify({ ...legacy, version: 1, answers: { 55: 'risk' } })), null);
+});

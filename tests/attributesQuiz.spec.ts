@@ -57,11 +57,11 @@ test('quiz learning, keyboard, persistence, language, results and isolated retak
 
 test('Greek quiz fits mobile, dark, high contrast and larger text; native keyboard radios', async ({ page }) => {
   await page.goto('/'); await page.getByRole('button', { name: 'Ελληνικά', exact: true }).click();
-  await page.getByRole('button', { name: 'Κουίζ Χαρακτηριστικών', exact: true }).click();
+  await page.getByRole('button', { name: 'Κουίζ χαρακτηριστικών', exact: true }).click();
   await page.setViewportSize({ width: 320, height: 740 });
   await page.evaluate(() => { const d = document.documentElement.dataset; d.theme = 'dark'; d.highContrast = 'true'; d.largerText = 'true'; d.reduceMotion = 'true'; });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('button', { name: 'Έναρξη Κουίζ' }).click();
+  await page.getByRole('button', { name: 'Έναρξη κουίζ' }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('radio').first().focus(); await page.keyboard.press('Space'); await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('radio').nth(1)).toBeChecked();

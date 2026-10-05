@@ -39,7 +39,7 @@ async function seed(page: Page, answers: Answers, completed = false, language = 
     if (result) localStorage.setItem('get2-current-result', JSON.stringify(result));
   }, { session, result });
   await page.reload();
-  if (completed) await page.getByRole('button', { name: language === 'el' ? 'Προβολή Αποτελεσμάτων' : 'View Results', exact: true }).click();
+  if (completed) await page.getByRole('button', { name: language === 'el' ? 'Προβολή αποτελεσμάτων' : 'View Results', exact: true }).click();
 }
 
 test('welcome, keyboard, EN/EL, persistence, review navigation and restart', async ({ page }) => {
@@ -80,13 +80,13 @@ test('welcome, keyboard, EN/EL, persistence, review navigation and restart', asy
   const greek = await readSession(page);
   expect(greek.questionOrder).toEqual(initial.questionOrder);
   await page.reload();
-  await page.getByRole('button', { name: 'Συνέχεια Τεστ', exact: true }).click();
+  await page.getByRole('button', { name: 'Συνέχεια τεστ', exact: true }).click();
   await settleWrites(page);
   expect(await readSession(page)).toEqual(greek);
   await page.getByRole('button', { name: 'Επισκόπηση απαντήσεων' }).click();
   await settleWrites(page);
   await expect(page.locator('.question-grid button')).toHaveCount(54);
-  await expect(page.getByRole('button', { name: 'Υπολογισμός Αποτελεσμάτων' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Υπολογισμός αποτελεσμάτων' })).toBeDisabled();
   await page.getByRole('button', { name: 'English' }).click();
   await settleWrites(page);
   await page.getByRole('button', { name: 'Question 2: I don’t know', exact: true }).click();
@@ -148,7 +148,7 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
   await page.getByRole('button', { name: 'Ελληνικά' }).click();
   await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('30/ 54');
-  await page.getByRole('button', { name: 'Αντιγραφή Αποτελεσμάτων', exact: true }).click();
+  await page.getByRole('button', { name: 'Αντιγραφή αποτελεσμάτων', exact: true }).click();
   await settleWrites(page);
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Συνολικά\n30 / 54 — Μέτρια');
   await page.getByRole('button', { name: 'English' }).click();
@@ -234,7 +234,7 @@ test('mobile layouts in both languages fit 320px and 390px screens', async ({ pa
       await settleWrites(page);
       await expectFits(page);
       if (width === 390 && language === 'en') await page.screenshot({ path: 'test-results/welcome-mobile.png', fullPage: true });
-      await page.getByRole('button', { name: language === 'en' ? 'Start Test' : 'Έναρξη Τεστ', exact: true }).click();
+      await page.getByRole('button', { name: language === 'en' ? 'Start Test' : 'Έναρξη τεστ', exact: true }).click();
       await settleWrites(page);
       await expectFits(page);
       await page.getByRole('button', { name: language === 'en' ? 'Review answers' : 'Επισκόπηση απαντήσεων', exact: true }).first().click();
@@ -414,7 +414,7 @@ test('requested widths, themes, large Greek text and 200 percent zoom remain usa
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
   await expectFits(page);
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
-  await page.getByRole('button', { name: 'Επανάληψη Τεστ' }).click();
+  await page.getByRole('button', { name: 'Επανάληψη τεστ' }).click();
   await settleWrites(page);
   await page.setViewportSize({ width: 320, height: 700 });
   await page.getByRole('radio', { name: 'Συμφωνώ', exact: true }).click();
@@ -466,16 +466,16 @@ test('reopening always starts at welcome and preserves unfinished answers and co
   await reopened.close();
   const returning = await context.newPage();
   await returning.goto('/');
-  await expect(returning.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true })).toBeVisible();
-  await expect(returning.getByRole('button', { name: 'Επανάληψη Τεστ', exact: true })).toBeVisible();
+  await expect(returning.getByRole('button', { name: 'Προβολή αποτελεσμάτων', exact: true })).toBeVisible();
+  await expect(returning.getByRole('button', { name: 'Επανάληψη τεστ', exact: true })).toBeVisible();
   await expect(returning.locator('.overall-score')).toHaveCount(0);
   expect(await readSession(returning)).toEqual(completed);
   expect(await returning.evaluate(key => localStorage.getItem(key), currentKey)).toBe(result);
-  await returning.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true }).click();
+  await returning.getByRole('button', { name: 'Προβολή αποτελεσμάτων', exact: true }).click();
   await settleWrites(returning);
   await expect(returning.locator('.overall-score')).toHaveText('54/ 54');
   await returning.reload();
-  await expect(returning.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true })).toBeVisible();
+  await expect(returning.getByRole('button', { name: 'Προβολή αποτελεσμάτων', exact: true })).toBeVisible();
 });
 
 test('printing failures remain recoverable in both languages', async ({ page }) => {
@@ -492,7 +492,7 @@ test('printing failures remain recoverable in both languages', async ({ page }) 
   await expect(page.locator('.print-status')).toContainText('Η εκτύπωση δεν είναι διαθέσιμη');
   await expect(page.locator('.overall-score')).toHaveText('54/ 54');
   await page.evaluate(() => { window.print = () => {}; });
-  await page.getByRole('button', { name: 'Λήψη Αποτελεσμάτων', exact: true }).click();
+  await page.getByRole('button', { name: 'Λήψη αποτελεσμάτων', exact: true }).click();
   await settleWrites(page);
   await expect(page.locator('.print-status')).toBeHidden();
   expect(errors).toEqual([]);
@@ -561,7 +561,7 @@ test('old prorated results cannot enter retake comparison; answers and preferenc
   });
   const preferences = await page.evaluate(() => localStorage.getItem('get2-preferences'));
   await page.reload();
-  await page.getByRole('button', { name: 'Προβολή Αποτελεσμάτων', exact: true }).click();
+  await page.getByRole('button', { name: 'Προβολή αποτελεσμάτων', exact: true }).click();
   await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('3/ 54');
   await expect(page.locator('.comparison')).toHaveCount(0);

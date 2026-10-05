@@ -23,3 +23,19 @@ test('English and Greek disclosures are complete and describe local storage with
   assert.match(translations.en.privacyControl, /keeps your language, theme and accessibility preferences/);
   assert.match(translations.el.privacyControl, /διατηρεί σκόπιμα τις προτιμήσεις γλώσσας, θέματος και προσβασιμότητας/);
 });
+
+test('learning features have complete distinct Greek translations', () => {
+  assert.deepEqual(Object.keys(quizTranslations.en).sort(), Object.keys(quizTranslations.el).sort());
+  for (const key of ['instantFeedback', 'submitAnswer', 'yourIncorrectAnswer', 'draftAnswer', 'feedbackCorrect', 'feedbackIncorrect', 'totalScore', 'correctCount'] as const) {
+    assert.match(quizTranslations.el[key], /[Α-ω]/);
+    assert.notEqual(quizTranslations.el[key], quizTranslations.en[key]);
+  }
+  for (const key of ['sourceAttribution', 'sourceLink', 'sourceCitation', 'sourceIndependence', 'sourceStudy', 'dimensionHint'] as const) {
+    assert.match(translations.el[key], /[Α-ω]/);
+    assert.notEqual(translations.el[key], translations.en[key]);
+  }
+  for (const category of ['achievement', 'autonomy', 'creativity', 'risk', 'locus'] as const) {
+    assert.match(translations.el[`${category}Description`], /[Α-ω]/);
+    assert.match(quizTranslations.el.explanations[category], /[Α-ω]/);
+  }
+});

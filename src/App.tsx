@@ -14,6 +14,8 @@ import type { ReviewFilter } from './lib/profile.ts';
 import { useQuizSession } from './lib/useQuizSession.ts';
 import { QuestionProgress } from './components/QuestionProgress.tsx';
 import { AttributesQuiz } from './components/AttributesQuiz.tsx';
+import { SourceReference } from './components/SourceReference.tsx';
+import type { Category } from './data/questions.ts';
 import { Results } from './components/Results.tsx';
 import { FlagIcon, Icon } from './components/Icon.tsx';
 
@@ -22,6 +24,7 @@ type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp' | 'quiz-resul
 const answerChoices: Answer[] = ['agree', 'disagree', 'unknown'];
 
 export default function App() {
+  const [expandedDimension, setExpandedDimension] = useState<Category | null>(null);
   const [initial] = useState(loadState);
   const snapshot = useRef(testDataSnapshot());
   const [session, setSession] = useState(initial.session);
@@ -297,7 +300,7 @@ export default function App() {
           <p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p>
         </section>
 
-        <section className="framework"><h2>{t.framework}</h2><div className="dimension-tags">{categories.map(category => <span key={category}>{t[`${category}Short`]}</span>)}</div><p>{t.frameworkNote}</p></section>
+        <section className="framework"><h2>{t.framework}</h2><div className="dimension-tags">{categories.map(category => <button key={category} aria-expanded={expandedDimension === category} aria-controls="dimension-explanation" onClick={() => setExpandedDimension(expandedDimension === category ? null : category)}>{t[category]} <span aria-hidden="true">{expandedDimension === category ? '−' : '+'}</span></button>)}</div><p>{t.dimensionHint}</p><div id="dimension-explanation" hidden={!expandedDimension}>{expandedDimension && <p>{t[`${expandedDimension}Description`]}</p>}</div><p>{t.frameworkNote}</p><SourceReference language={language} /></section>
       </>}
 
       {screen === 'question' && session && question && <>
@@ -364,7 +367,7 @@ export default function App() {
         </div></fieldset>
         {(['largerText', 'highContrast', 'reduceMotion'] as const).map(key => <label className="preference-option" key={key}><input type="checkbox" checked={preferences[key]} onChange={event => changePreference({ ...preferences, [key]: event.target.checked })} />{t[key]}</label>)}
       </div> : panel === 'privacy' ? <div className="info-panel"><p>{t.privacyBody}</p><p>{t.privacyStorage}</p><p>{t.privacyControl}</p><p>{t.privacyExtra}</p><p>{t.privacyHosting}</p><p className="small-note">{t.privacyUpdated}: <time dateTime="2026-10-01">{t.privacyDate}</time></p></div>
-        : panel === 'about' ? <div className="info-panel"><p>{t.aboutBody}</p><p>{t.aboutScoring}</p><p>{t.aboutQuiz}</p><p>{t.disclaimer}</p></div>
+        : panel === 'about' ? <div className="info-panel"><p>{t.aboutBody}</p><p>{t.aboutScoring}</p><p>{t.aboutQuiz}</p><p>{t.disclaimer}</p><SourceReference language={language} /></div>
         : <>
           <p>{panel === 'restart' ? t.restartMessage : t.deleteMessage}</p>
           {deleteError && <p role="alert" className="delete-error">{t.deleteFailed}</p>}
