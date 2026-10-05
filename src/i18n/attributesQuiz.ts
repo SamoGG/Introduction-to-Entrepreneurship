@@ -1,6 +1,7 @@
 export const quizTranslations = {
   en: {
-    instantFeedback: 'Show feedback after submitting each answer',
+    instantFeedback: 'Show instant feedback',
+    instantFeedbackHelp: 'Choose an option and submit your answer to see whether it is correct, the correct attribute and an explanation before moving on. Submitted answers cannot be changed.',
     submitAnswer: 'Submit answer',
     yourIncorrectAnswer: 'Your answer — incorrect',
     draftAnswer: 'Answer selected. Submit it to see feedback and save your answer.',
@@ -45,7 +46,8 @@ export const quizTranslations = {
     bands: ['Excellent understanding', 'Very good understanding', 'Good understanding', 'Developing understanding', 'Review recommended'], feedback: ['Strong understanding', 'Generally understood', 'Worth reviewing', 'Review this attribute'],
   },
   el: {
-    instantFeedback: 'Εμφάνιση ανατροφοδότησης μετά την υποβολή κάθε απάντησης',
+    instantFeedback: 'Άμεση ανατροφοδότηση',
+    instantFeedbackHelp: 'Επιλέξτε και υποβάλετε την απάντησή σας για να δείτε αν είναι σωστή, το σωστό χαρακτηριστικό και μια εξήγηση πριν συνεχίσετε. Οι απαντήσεις που υποβάλλονται δεν αλλάζουν.',
     submitAnswer: 'Υποβολή απάντησης',
     yourIncorrectAnswer: 'Η απάντησή σας — λανθασμένη',
     draftAnswer: 'Η απάντηση επιλέχθηκε. Υποβάλετέ την για να αποθηκευτεί και να δείτε την ανατροφοδότηση.',

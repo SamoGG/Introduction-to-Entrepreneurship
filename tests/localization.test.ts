@@ -26,7 +26,7 @@ test('English and Greek disclosures are complete and describe local storage with
 
 test('learning features have complete distinct Greek translations', () => {
   assert.deepEqual(Object.keys(quizTranslations.en).sort(), Object.keys(quizTranslations.el).sort());
-  for (const key of ['instantFeedback', 'submitAnswer', 'yourIncorrectAnswer', 'draftAnswer', 'feedbackCorrect', 'feedbackIncorrect', 'totalScore', 'correctCount'] as const) {
+  for (const key of ['instantFeedback', 'instantFeedbackHelp', 'submitAnswer', 'yourIncorrectAnswer', 'draftAnswer', 'feedbackCorrect', 'feedbackIncorrect', 'totalScore', 'correctCount'] as const) {
     assert.match(quizTranslations.el[key], /[Α-ω]/);
     assert.notEqual(quizTranslations.el[key], quizTranslations.en[key]);
   }

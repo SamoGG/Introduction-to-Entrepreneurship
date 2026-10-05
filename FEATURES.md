@@ -32,7 +32,7 @@ The five dimensions are:
 | Calculated Risk-Taking | 12 | Evaluating uncertain opportunities and their likely consequences |
 | Internal Locus of Control | 12 | Connecting outcomes with personal actions, decisions and effort |
 
-On the welcome screen, dimension tags are buttons with full translated names, plus/minus indicators and `aria-expanded`. Activating one shows its existing explanation inline; activating it again closes it. Only one explanation is open at a time. Native Enter/Space keyboard activation works without leaving the page.
+On the welcome screen, the five dimension tags are keyboard-accessible external links styled as buttons. Each opens <http://www.get2test.net/index.html#enterprisingPotential> for detailed explanations on the original GET2 website. They retain full translated names and visible focus indicators.
 
 Restarting an unfinished GET2 test requires confirmation and clears its answers with a new order. Retaking a completed test preserves that result as the previous result. Restarting an unfinished retake does not replace the previous completed result.
 
@@ -42,7 +42,7 @@ This is an educational classification exercise, not an assessment of the user's 
 
 The same 54 statements are presented in randomized order. Each statement has five attribute options, with a randomized option order saved separately for every question. Users identify the intended category, including when a statement is phrased negatively.
 
-The learning page offers “Show feedback after submitting each answer”, OFF by default:
+Beside the quiz start/continue/retake buttons, the learning page offers “Show instant feedback”, OFF by default. A localized tooltip explains the submit-and-review flow on hover or keyboard focus; a help button also makes it accessible on touch devices. Escape dismisses the tooltip:
 
 - **Normal mode:** selecting an attribute reveals no correctness. Users move on with Next and receive feedback after submitting.
 - **Instant-feedback mode:** pick an option, then activate **Submit answer** (or press Enter) to save and reveal the result for that question. Before submission, the choice can be changed and no correctness is shown. After submission, the answer is locked: the selected radio retains the user's actual answer, a wrong choice is marked “Your answer — incorrect”, and the correct option is highlighted and labeled “Correct answer”. The explanatory sentence appears in a polite, atomic status region. Next becomes available after a 700 millisecond guard and advances only when activated. Returning to a submitted question restores its feedback and locked answer. Normal-mode answers remain editable.
@@ -96,6 +96,6 @@ The app responds to browser storage changes across tabs. Quiz persistence serial
 
 English and Greek translation dictionaries cover controls, results, explanations, dialogs, source references and accessible labels. Original author names, GET2 and the cited publication's formal English title remain proper names. Questionnaire statements and category mappings are shared by both activities and were not changed for these features.
 
-Source links use readable localized text, announce a new tab, and use `target="_blank"` with `rel="noopener noreferrer"`. Following a link visits an external site; that site's behavior is outside the application's storage/privacy controls.
+Source links use readable localized text without a parenthetical new-tab notice, and use `target="_blank"` with `rel="noopener noreferrer"`. Following a link visits an external site; that site's behavior is outside the application's storage/privacy controls.
 
 Design constraints: no backend, accounts, analytics or tracking; no changes to established GET2 scoring or mappings; no definitive psychological interpretation; no claim of institutional endorsement. Source attribution does not establish a questionnaire reuse license. Deployment contact information and licensing verification remain existing project follow-up items in source comments.

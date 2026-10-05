@@ -4,11 +4,11 @@ import type { Language } from '../lib/storage.ts';
 // TODO: verify licensing separately before public deployment.
 const en = {
   sourceAttribution: 'Based on the General Measure of Enterprising Tendency (GET/GET2), originally developed by Sally Caird and Cliff Johnson.',
-  sourceLink: 'Explore the original GET2 resource at The Open University (opens in a new tab)',
+  sourceLink: 'Explore the original GET2 resource at The Open University',
   sourceCitation: 'Sally Caird (2013), “General measure of Enterprising Tendency test”.',
   sourceIndependence: 'This application is an independent implementation, with no affiliation or endorsement by the original researchers or their institutions.',
   sourceStudy: 'These five characteristics come from the GET/GET2 framework, not a definitive psychological model. The Attributes Quiz is an educational exercise for understanding that framework.',
-  dimensionHint: 'Select a dimension to read its explanation.',
+  dimensionHint: 'Explore the five dimensions in detail on the original GET2 website.',
 
   footerNavigation: "Information and preferences",
   aboutQuiz: "The separate educational Attributes Quiz asks you to match GET2 statements to five entrepreneurial attributes. It checks your understanding of those attributes; it does not assess your own entrepreneurial tendency.",
@@ -201,11 +201,11 @@ const en = {
 
 const el: typeof en = {
   sourceAttribution: 'Η εφαρμογή βασίζεται στο εργαλείο μέτρησης της γενικής επιχειρηματικής τάσης (GET/GET2), που ανέπτυξαν αρχικά η Sally Caird και ο Cliff Johnson.',
-  sourceLink: 'Δείτε την πρωτότυπη πηγή του GET2 στο Ανοικτό Πανεπιστήμιο του Ηνωμένου Βασιλείου (ανοίγει σε νέα καρτέλα)',
+  sourceLink: 'Δείτε την πρωτότυπη πηγή του GET2 στο Ανοικτό Πανεπιστήμιο του Ηνωμένου Βασιλείου',
   sourceCitation: 'Sally Caird (2013), «General measure of Enterprising Tendency test» (εργαλείο μέτρησης της γενικής επιχειρηματικής τάσης).',
   sourceIndependence: 'Η εφαρμογή αποτελεί ανεξάρτητη υλοποίηση, χωρίς σύνδεση με τους αρχικούς ερευνητές ή τα ιδρύματά τους και χωρίς την έγκρισή τους.',
   sourceStudy: 'Τα πέντε χαρακτηριστικά προέρχονται από το πλαίσιο GET/GET2 και δεν αποτελούν οριστικό ψυχολογικό μοντέλο. Το κουίζ χαρακτηριστικών είναι μια εκπαιδευτική άσκηση για την κατανόηση αυτού του πλαισίου.',
-  dimensionHint: 'Επιλέξτε μια διάσταση για να διαβάσετε την εξήγησή της.',
+  dimensionHint: 'Διαβάστε περισσότερα για τις πέντε διαστάσεις στον πρωτότυπο ιστότοπο του GET2.',
 
   footerNavigation: "Πληροφορίες και προτιμήσεις",
   aboutQuiz: "Το ξεχωριστό εκπαιδευτικό κουίζ χαρακτηριστικών σάς ζητά να αντιστοιχίσετε τις δηλώσεις του GET2 με πέντε επιχειρηματικά χαρακτηριστικά. Ελέγχει την κατανόηση αυτών των χαρακτηριστικών και δεν αξιολογεί τη δική σας επιχειρηματική τάση.",

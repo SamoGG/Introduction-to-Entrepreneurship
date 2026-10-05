@@ -15,7 +15,6 @@ import { useQuizSession } from './lib/useQuizSession.ts';
 import { QuestionProgress } from './components/QuestionProgress.tsx';
 import { AttributesQuiz } from './components/AttributesQuiz.tsx';
 import { SourceReference } from './components/SourceReference.tsx';
-import type { Category } from './data/questions.ts';
 import { Results } from './components/Results.tsx';
 import { FlagIcon, Icon } from './components/Icon.tsx';
 
@@ -24,7 +23,6 @@ type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp' | 'quiz-resul
 const answerChoices: Answer[] = ['agree', 'disagree', 'unknown'];
 
 export default function App() {
-  const [expandedDimension, setExpandedDimension] = useState<Category | null>(null);
   const [initial] = useState(loadState);
   const snapshot = useRef(testDataSnapshot());
   const [session, setSession] = useState(initial.session);
@@ -300,7 +298,7 @@ export default function App() {
           <p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p>
         </section>
 
-        <section className="framework"><h2>{t.framework}</h2><div className="dimension-tags">{categories.map(category => <button key={category} aria-expanded={expandedDimension === category} aria-controls="dimension-explanation" onClick={() => setExpandedDimension(expandedDimension === category ? null : category)}>{t[category]} <span aria-hidden="true">{expandedDimension === category ? '−' : '+'}</span></button>)}</div><p>{t.dimensionHint}</p><div id="dimension-explanation" hidden={!expandedDimension}>{expandedDimension && <p>{t[`${expandedDimension}Description`]}</p>}</div><p>{t.frameworkNote}</p><SourceReference language={language} /></section>
+        <section className="framework"><h2>{t.framework}</h2><div className="dimension-tags">{categories.map(category => <a key={category} href="http://www.get2test.net/index.html#enterprisingPotential" target="_blank" rel="noopener noreferrer">{t[category]} <Icon name="external" /></a>)}</div><p>{t.dimensionHint}</p><p>{t.frameworkNote}</p><SourceReference language={language} /></section>
       </>}
 
       {screen === 'question' && session && question && <>

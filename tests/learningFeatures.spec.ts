@@ -9,17 +9,16 @@ for (const language of ['en', 'el'] as const) {
   test(`${language}: keyboard dimension explanations and safe localized source links`, async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: language === 'en' ? 'English' : 'Ελληνικά', exact: true }).click();
-    const buttons = page.locator('.dimension-tags button');
-    await expect(buttons).toHaveCount(5);
+    const links = page.locator('.dimension-tags a');
+    await expect(links).toHaveCount(5);
     for (const category of categories) {
-      const button = buttons.filter({ hasText: t[category] });
-      await button.focus(); await page.keyboard.press('Enter');
-      await expect(button).toHaveAttribute('aria-expanded', 'true');
-      await expect(page.locator('#dimension-explanation')).toHaveText(t[`${category}Description`]);
-      await expect(page.locator('.dimension-tags button[aria-expanded="true"]')).toHaveCount(1);
+      const link = links.filter({ hasText: t[category] });
+      await link.focus();
+      await expect(link).toBeFocused();
+      await expect(link).toHaveAttribute('href', 'http://www.get2test.net/index.html#enterprisingPotential');
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     }
-    await page.keyboard.press('Space');
-    await expect(page.locator('#dimension-explanation')).toBeHidden();
     const source = page.getByRole('link', { name: t.sourceLink, exact: true });
     await expect(source).toHaveAttribute('href', 'https://oro.open.ac.uk/5393/');
     await expect(source).toHaveAttribute('target', '_blank');
@@ -31,7 +30,16 @@ for (const language of ['en', 'el'] as const) {
     await page.getByRole('button', { name: t.attributeMatch, exact: true }).click();
     await expect(source).toBeVisible();
     await expect(page.locator('.source-reference')).toContainText(t.sourceStudy);
-    await expect(page.getByRole('checkbox', { name: q.instantFeedback })).not.toBeChecked();
+    const mode = page.getByRole('checkbox', { name: q.instantFeedback });
+    await expect(mode).not.toBeChecked();
+    await mode.focus();
+    await expect(page.getByRole('tooltip')).toHaveText(q.instantFeedbackHelp);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('tooltip')).toBeHidden();
+    await page.getByRole('button', { name: q.start, exact: true }).focus();
+    await page.locator('.quiz-mode').hover();
+    await expect(page.getByRole('tooltip')).toBeVisible();
+    await expect(page.locator('.quiz-start-actions')).toContainText(q.start);
     await page.getByRole('button', { name: q.start, exact: true }).click();
     await page.getByRole('radio').first().check();
     await expect(page.locator('.instant-feedback')).toHaveCount(0);

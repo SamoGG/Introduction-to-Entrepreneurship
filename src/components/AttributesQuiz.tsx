@@ -15,6 +15,7 @@ export function AttributesQuiz({ quiz, language, showResults = false, shortcutsE
   const { session, commit, storageError, revision, changedElsewhere, saving } = quiz;
   const [screen, setScreen] = useState<'learn' | 'question' | 'review' | 'results'>(showResults ? 'results' : 'learn');
   useEffect(() => { setScreen(showResults ? 'results' : 'learn'); }, [showResults, revision]);
+  const [modeHelpDismissed, setModeHelpDismissed] = useState(false);
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [draftAnswers, setDraftAnswers] = useState<QuizSession['answers']>({});
   useEffect(() => { setDraftAnswers({}); }, [revision]);
@@ -76,9 +77,15 @@ export function AttributesQuiz({ quiz, language, showResults = false, shortcutsE
       <SourceReference language={language} study />
       <aside className="attribute-card"><h2>{q.example}</h2><p>{q.exampleText}</p><p><strong>{t.autonomy}</strong> — {q.exampleWhy}</p></aside>
       <p className="quiz-note">{q.note}</p><p>{q.facts}</p>
-      <label className="preference-option quiz-mode"><input type="checkbox" checked={instantFeedback} disabled={Boolean(session && !session.completed)} onChange={event => setInstantFeedback(event.target.checked)} />{q.instantFeedback}</label>
-      {session ? <button className="button primary" onClick={() => setScreen(session.completed ? 'results' : 'question')}>{session.completed ? t.viewResults : q.resume}</button> : <button className="button primary" onClick={start}>{q.start}</button>}
-      {session?.completed && <button className="button secondary" onClick={start}>{q.retake}</button>}
+      <div className="quiz-start-actions">
+        {session ? <button className="button primary" onClick={() => setScreen(session.completed ? 'results' : 'question')}>{session.completed ? t.viewResults : q.resume}</button> : <button className="button primary" onClick={start}>{q.start}</button>}
+        {session?.completed && <button className="button secondary" onClick={start}>{q.retake}</button>}
+        <div className="quiz-mode" onMouseEnter={() => setModeHelpDismissed(false)} onFocus={() => setModeHelpDismissed(false)} onKeyDown={event => { if (event.key === 'Escape') setModeHelpDismissed(true); }}>
+          <label className="preference-option"><input type="checkbox" aria-describedby="quiz-mode-help" checked={instantFeedback} disabled={Boolean(session && !session.completed)} onChange={event => setInstantFeedback(event.target.checked)} />{q.instantFeedback}</label>
+          <button type="button" className="quiz-mode-help-button" aria-label={q.instantFeedback} aria-describedby="quiz-mode-help" onClick={() => setModeHelpDismissed(false)}>?</button>
+          <span id="quiz-mode-help" role="tooltip" className={`quiz-mode-tooltip${modeHelpDismissed ? ' dismissed' : ''}`}>{q.instantFeedbackHelp}</span>
+        </div>
+      </div>
     </>}
     {screen === 'question' && session && !session.completed && question && <>
       <div className="question-topline"><span id="quiz-position" className="eyebrow">{t.question} {session.currentIndex + 1} {t.of} 54</span><button className="text-button" onClick={() => setScreen('review')}>{t.review}</button></div>
