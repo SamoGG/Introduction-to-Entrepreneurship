@@ -575,3 +575,15 @@ h1, h2, h3, p, label, td, th { overflow-wrap: anywhere; }
 @media (max-width: 480px) {
   .quiz-start-actions > .button.primary { width: 100%; }
 }
+
+.site-footer { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 28px; }
+.footer-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; width: 100%; margin-top: 20px; align-items: start; }
+.footer-details { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.site-footer .footer-columns p { text-align: left; }
+.site-footer .footer-privacy, .site-footer .footer-links { justify-content: center; }
+.site-footer .source-reference { margin: 0; min-width: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.site-footer .source-reference p { margin: 0 0 12px; }
+.site-footer .source-reference p:last-child { margin-bottom: 0; }
+@media (max-width: 700px) {
+  .footer-columns { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}

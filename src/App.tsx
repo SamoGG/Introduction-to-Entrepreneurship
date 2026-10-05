@@ -354,8 +354,13 @@ export default function App() {
         <button className="text-button" onClick={() => openPanel('about')}>{t.aboutTitle}</button>
         {hasTestData && <button className="text-button" onClick={() => openPanel('delete')}>{t.deleteData}</button>}
       </nav>
+      <div className="footer-columns">
+      <div className="footer-details">
       <p className="footer-credit">{t.madeBy}</p>
       <p className="footer-credit">{t.aiDisclosure}</p>
+      </div>
+      <SourceReference language={language} study />
+      </div>
     </footer>
     {panel && <Modal title={panelTitle} closeLabel={t.close} onClose={() => setPanel(null)}>
       {panel === 'preferences' ? <div className="preferences-panel">

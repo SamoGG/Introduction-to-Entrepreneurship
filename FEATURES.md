@@ -4,13 +4,13 @@ This application provides a GET2 self-reflection questionnaire and a separate ed
 
 English and Greek are available throughout the interface. A saved language takes priority over the session language and browser-language fallback. Switching language preserves answers and question order. Dates and GET2 numeric summaries use locale-aware formatting.
 
-The header provides GET2 Test, Attributes Quiz and a Results menu with separate destinations for both activities. Footer dialogs provide appearance/accessibility preferences, privacy information, About and deletion of saved activity data. Preferences include system/light/dark theme, larger text, high contrast and reduced motion.
+The header provides GET2 Test, Attributes Quiz and a Results menu with separate destinations for both activities. Privacy and navigation are centered across the footer. Below them, a two-column row places the author and AI-assistance credits on the left, and GET2 research attribution and the educational-framework explanation on the right. These stack on narrow screens. Footer dialogs provide appearance/accessibility preferences, privacy information, About and deletion of saved activity data. Preferences include system/light/dark theme, larger text, high contrast and reduced motion.
 
 Accessibility includes a skip link, semantic landmarks and headings, native buttons and radio groups, visible focus indicators, live status messages, answer progress, keyboard shortcuts and focus management when questions/screens change. Dialogs trap focus, support Escape and restore focus to the opener. Responsive layouts support narrow screens; print styles provide a GET2 result view.
 
 Storage is local to the browser, with no application backend, accounts, cookies, analytics or tracking. Storage failures are reported and in-memory progress remains usable. The privacy dialog distinguishes application data handling from possible technical request logging by the hosting provider.
 
-GET/GET2 research is attributed to Sally Caird and Cliff Johnson in About and in the quiz learning area. The linked source is Sally Caird (2013), “General measure of Enterprising Tendency test”, at The Open University's Open Research Online: <https://oro.open.ac.uk/5393/>. The reference explicitly identifies this application as an independent implementation. It is separate from footer implementation credits to Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas and the disclosure that development used AI assistance.
+GET/GET2 research is attributed to Sally Caird and Cliff Johnson in About and in the second footer column. The linked source is Sally Caird (2013), “General measure of Enterprising Tendency test”, at The Open University's Open Research Online: <https://oro.open.ac.uk/5393/>. The reference explicitly identifies this application as an independent implementation. It is separate from footer implementation credits to Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas and the disclosure that development used AI assistance.
 
 # GET2 Test
 
@@ -36,7 +36,7 @@ Restarting an unfinished GET2 test requires confirmation and clears its answers 
 
 # Attributes Quiz
 
-This is an educational classification exercise, not an assessment of the user's personality or entrepreneurial tendency. Its learning screen explains the five attributes, lists typical traits and gives a practice example. Below the five cards, a “More in-depth explanations of the five attributes” link opens <http://www.get2test.net/index.html#enterprisingPotential>, using the same destination previously linked from the GET2 welcome screen. The duplicate welcome-screen dimensions section has been removed. A shared source area after the cards links to the original GET2 resource and explains that these characteristics are part of the GET/GET2 framework, not a definitive psychological model.
+This is an educational classification exercise, not an assessment of the user's personality or entrepreneurial tendency. Its learning screen explains the five attributes, lists typical traits and gives a practice example. Below the five cards, a “More in-depth explanations of the five attributes” link opens <http://www.get2test.net/index.html#enterprisingPotential>, using the same destination previously linked from the GET2 welcome screen. The duplicate welcome-screen dimensions section has been removed. The shared source area in the second footer column links to the original GET2 resource and explains that these characteristics are part of the GET/GET2 framework, not a definitive psychological model.
 
 The same 54 statements are presented in randomized order. Each statement has five attribute options, with a randomized option order saved separately for every question. Users identify the intended category, including when a statement is phrased negatively.
 
