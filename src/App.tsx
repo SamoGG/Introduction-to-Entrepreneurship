@@ -359,7 +359,7 @@ export default function App() {
       <p className="footer-credit">{t.madeBy}</p>
       <p className="footer-credit">{t.aiDisclosure}</p>
       </div>
-      <SourceReference language={language} study />
+      <SourceReference language={language} compact />
       </div>
     </footer>
     {panel && <Modal title={panelTitle} closeLabel={t.close} onClose={() => setPanel(null)}>

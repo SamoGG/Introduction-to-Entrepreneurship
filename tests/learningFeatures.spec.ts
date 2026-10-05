@@ -21,12 +21,11 @@ for (const language of ['en', 'el'] as const) {
     await expect(detailed).toHaveAttribute('href', 'http://www.get2test.net/index.html#enterprisingPotential');
     await expect(detailed).toHaveAttribute('target', '_blank');
     await expect(detailed).toHaveAttribute('rel', 'noopener noreferrer');
-    const source = page.getByRole('link', { name: t.sourceLink, exact: true });
+    const source = page.getByRole('link', { name: t.footerSourceLink, exact: true });
     await expect(source).toHaveAttribute('href', 'https://oro.open.ac.uk/5393/');
     await expect(source).toHaveAttribute('target', '_blank');
     await expect(source).toHaveAttribute('rel', 'noopener noreferrer');
-    await expect(page.locator('.source-reference')).toContainText(t.sourceAttribution);
-    await expect(page.locator('.source-reference')).toContainText(t.sourceStudy);
+    await expect(page.locator('footer .source-reference')).toContainText(t.footerSource);
     const mode = page.getByRole('checkbox', { name: q.instantFeedback });
     await expect(mode).not.toBeChecked();
     await mode.focus();

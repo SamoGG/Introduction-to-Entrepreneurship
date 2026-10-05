@@ -3,6 +3,9 @@ import type { Language } from '../lib/storage.ts';
 // TODO before public deployment: add verified site operator/privacy contact to both languages.
 // TODO: verify licensing separately before public deployment.
 const en = {
+  footerSource: 'Based on GET/GET2, developed by Sally Caird and Cliff Johnson. An independent educational app, not a definitive psychological assessment. No affiliation or endorsement is implied.',
+  footerSourceLink: 'Original GET2 resource — Caird (2013), The Open University',
+
   sourceAttribution: 'Based on the General Measure of Enterprising Tendency (GET/GET2), originally developed by Sally Caird and Cliff Johnson.',
   sourceLink: 'Explore the original GET2 resource at The Open University',
   sourceCitation: 'Sally Caird (2013), “General measure of Enterprising Tendency test”.',
@@ -200,6 +203,9 @@ const en = {
 };
 
 const el: typeof en = {
+  footerSource: 'Βασίζεται στο GET/GET2, που ανέπτυξαν η Sally Caird και ο Cliff Johnson. Ανεξάρτητη εκπαιδευτική εφαρμογή, όχι οριστική ψυχολογική αξιολόγηση. Δεν υποδηλώνεται σύνδεση ή έγκριση από τους δημιουργούς ή τα ιδρύματά τους.',
+  footerSourceLink: 'Πρωτότυπη πηγή GET2 — Caird (2013), Ανοικτό Πανεπιστήμιο του Ηνωμένου Βασιλείου',
+
   sourceAttribution: 'Η εφαρμογή βασίζεται στο εργαλείο μέτρησης της γενικής επιχειρηματικής τάσης (GET/GET2), που ανέπτυξαν αρχικά η Sally Caird και ο Cliff Johnson.',
   sourceLink: 'Δείτε την πρωτότυπη πηγή του GET2 στο Ανοικτό Πανεπιστήμιο του Ηνωμένου Βασιλείου',
   sourceCitation: 'Sally Caird (2013), «General measure of Enterprising Tendency test» (εργαλείο μέτρησης της γενικής επιχειρηματικής τάσης).',
