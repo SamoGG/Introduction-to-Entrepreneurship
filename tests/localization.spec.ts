@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { translations } from '../src/i18n/translations.ts';
 
-for (const language of ['en', 'el'] as const) {
+for (const language of ['en', 'el', 'fr'] as const) {
   test(`${language}: footer and privacy remain localized and readable across display modes`, async ({ page }) => {
     const t = translations[language];
     const other = translations[language === 'en' ? 'el' : 'en'];
     await page.goto('/');
-    await page.getByRole('button', { name: language === 'en' ? 'English' : 'Ελληνικά', exact: true }).click();
+    await page.getByRole('button', { name: language === 'fr' ? 'Français' : language === 'en' ? 'English' : 'Ελληνικά', exact: true }).click();
     const footer = page.locator('footer');
     await expect(footer).toContainText(t.madeBy);
     await expect(footer.getByText(t.aiDisclosure, { exact: true })).toBeVisible();

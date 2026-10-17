@@ -12,7 +12,7 @@ const winning = (id: number): Answer => id % 2 === 0 ? 'agree' : 'disagree';
 test('browser language is only a fallback; saved language and existing sessions win', () => {
   assert.equal(initialLanguage(null, undefined, 'el-GR'), 'el');
   assert.equal(initialLanguage(null, undefined, 'EL-cy'), 'el');
-  assert.equal(initialLanguage(null, undefined, 'fr-FR'), 'en');
+  assert.equal(initialLanguage(null, undefined, 'fr-FR'), 'fr');
   assert.equal(initialLanguage('en', 'el', 'el-GR'), 'en');
   assert.equal(initialLanguage('el', undefined, 'en-US'), 'el');
   assert.equal(initialLanguage(null, 'el', 'en-GB'), 'el');

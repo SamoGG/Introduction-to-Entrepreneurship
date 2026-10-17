@@ -1,8 +1,14 @@
+import { fr } from './french.ts';
 import type { Language } from '../lib/storage.ts';
 
 // TODO before public deployment: add verified site operator/privacy contact to both languages.
 // TODO: verify licensing separately before public deployment.
 const en = {
+  binaryAnswers: 'Agree / Disagree only',
+  binaryAnswersHelp: 'Hide “I don’t know” and answer each statement with Agree or Disagree. This choice applies to the whole attempt and cannot be changed while it is in progress.',
+  binaryInstruction: 'Choose agree or disagree.',
+  binaryInstructionDetail: 'Choose the response closest to your usual tendency. You can revisit your answers before viewing results.',
+  binaryRemaining: 'Choose Agree or Disagree for every question to view your results.',
   footerSource: 'Based on GET/GET2, developed by Sally Caird and Cliff Johnson. An independent educational app, not a definitive psychological assessment. No affiliation or endorsement is implied.',
   footerSourceLink: 'Original GET2 resource — Caird (2013), The Open University',
 
@@ -203,6 +209,11 @@ const en = {
 };
 
 const el: typeof en = {
+  binaryAnswers: 'Μόνο Συμφωνώ / Διαφωνώ',
+  binaryAnswersHelp: 'Απόκρυψη της επιλογής «Δεν γνωρίζω». Απαντήστε σε κάθε δήλωση με Συμφωνώ ή Διαφωνώ. Η επιλογή ισχύει για ολόκληρο το τεστ και δεν αλλάζει όσο βρίσκεται σε εξέλιξη.',
+  binaryInstruction: 'Επιλέξτε Συμφωνώ ή Διαφωνώ.',
+  binaryInstructionDetail: 'Επιλέξτε την απάντηση που περιγράφει καλύτερα τη συνήθη τάση σας. Μπορείτε να ελέγξετε τις απαντήσεις πριν δείτε τα αποτελέσματα.',
+  binaryRemaining: 'Επιλέξτε Συμφωνώ ή Διαφωνώ για κάθε ερώτηση για να δείτε τα αποτελέσματα.',
   footerSource: 'Βασίζεται στο GET/GET2, που ανέπτυξαν η Sally Caird και ο Cliff Johnson. Ανεξάρτητη εκπαιδευτική εφαρμογή, όχι οριστική ψυχολογική αξιολόγηση. Δεν υποδηλώνεται σύνδεση ή έγκριση από τους δημιουργούς ή τα ιδρύματά τους.',
   footerSourceLink: 'Πρωτότυπη πηγή GET2 — Caird (2013), Ανοικτό Πανεπιστήμιο του Ηνωμένου Βασιλείου',
 
@@ -402,11 +413,11 @@ const el: typeof en = {
   errorText: 'Τα δεδομένα των ερωτήσεων είναι ελλιπή ή μη έγκυρα. Τα αποτελέσματα δεν μπορούν να υπολογιστούν με ασφάλεια.',
 };
 
-export const translations = { en, el };
+export const translations = { en, el, fr };
 export type Copy = typeof en;
 export const numberFormat = (value: number, language: Language, decimals = 1) =>
-  new Intl.NumberFormat(language === 'el' ? 'el-GR' : 'en-GB', { maximumFractionDigits: decimals }).format(value);
+  new Intl.NumberFormat(language === 'fr' ? 'fr-FR' : language === 'el' ? 'el-GR' : 'en-GB', { maximumFractionDigits: decimals }).format(value);
 export const formatScore = (value: number | null, language: Language) =>
   value === null ? translations[language].na : numberFormat(value, language);
 export const formatDate = (date: string, language: Language) =>
-  new Intl.DateTimeFormat(language === 'el' ? 'el-GR' : 'en-GB', { dateStyle: 'long' }).format(new Date(date));
+  new Intl.DateTimeFormat(language === 'fr' ? 'fr-FR' : language === 'el' ? 'el-GR' : 'en-GB', { dateStyle: 'long' }).format(new Date(date));

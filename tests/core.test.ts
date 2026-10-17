@@ -157,7 +157,11 @@ test('session round-trips preserve IDs, order, answers, position, and language',
   assert.equal(validSession({ ...session, language: ['en'] }), false);
   assert.equal(validSession({ ...session, completed: true }), false);
   assert.equal(validSession({ ...session, currentIndex: 54 }), false);
-  assert.equal(validSession({ ...session, language: 'fr' }), false);
+  assert.equal(validSession({ ...session, language: 'fr' }), true);
+  assert.equal(validSession({ ...session, language: 'de' }), false);
+  assert.equal(validSession({ ...session, binaryAnswers: true }), false);
+  assert.equal(validSession({ ...session, binaryAnswers: 'true' }), false);
+  assert.equal(validSession({ ...session, binaryAnswers: true, answers: { 18: 'agree' } }), true);
 });
 
 test('malformed storage and tampered results are rejected safely', () => {

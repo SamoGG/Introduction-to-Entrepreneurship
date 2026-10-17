@@ -18,5 +18,5 @@ export function validPreferences(value: unknown): value is Preferences {
 }
 
 export function initialLanguage(saved: Language | null, session: Language | undefined, browserLanguage: string): Language {
-  return saved ?? session ?? (browserLanguage.toLowerCase().startsWith('el') ? 'el' : 'en');
+  return saved ?? session ?? (browserLanguage.toLowerCase().startsWith('el') ? 'el' : browserLanguage.toLowerCase().startsWith('fr') ? 'fr' : 'en');
 }

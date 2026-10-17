@@ -20,11 +20,13 @@ import { FlagIcon, Icon } from './components/Icon.tsx';
 
 type Panel = 'restart' | 'delete' | 'privacy' | 'about' | 'preferences';
 type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp' | 'quiz-results';
-const answerChoices: Answer[] = ['agree', 'disagree', 'unknown'];
+
 
 export default function App() {
   const [initial] = useState(loadState);
   const snapshot = useRef(testDataSnapshot());
+  const [binaryAnswers, setBinaryAnswers] = useState(initial.session?.binaryAnswers ?? false);
+  const [modeHelpDismissed, setModeHelpDismissed] = useState(false);
   const [session, setSession] = useState(initial.session);
   const [current, setCurrent] = useState(initial.current);
   const [previous, setPrevious] = useState(initial.previous);
@@ -44,6 +46,7 @@ export default function App() {
   const [deleteError, setDeleteError] = useState(false);
   const announce = (text: string) => setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }));
   const t = translations[language];
+  const answerChoices: Answer[] = session?.binaryAnswers ? ['agree', 'disagree'] : ['agree', 'disagree', 'unknown'];
   const answeredCount = Object.keys(session?.answers ?? {}).length;
   const activeId = session?.questionOrder[session.currentIndex];
   const question = questions.find(item => item.id === activeId);
@@ -52,7 +55,7 @@ export default function App() {
   function refreshFromStorage() {
     const next = loadState();
     snapshot.current = testDataSnapshot();
-    setSession(next.session); setCurrent(next.current); setPrevious(next.previous);
+    setSession(next.session); setBinaryAnswers(next.session?.binaryAnswers ?? false); setCurrent(next.current); setPrevious(next.previous);
     setLanguage(next.language); setFromReview(false); setReviewFilter('all');
     setPanel(null); setScreen('welcome');
     setChangedElsewhere(true);
@@ -117,7 +120,7 @@ export default function App() {
       }
       let order = shuffleQuestions();
       if (session && order.every((id, index) => id === session.questionOrder[index])) order = order.reverse();
-      updateSession({ version: 2, questionOrder: order, answers: {}, currentIndex: 0, language, completed: false });
+      updateSession({ version: 2, questionOrder: order, answers: {}, currentIndex: 0, language, completed: false, binaryAnswers });
       persist(keys.language, language);
       setFromReview(false);
       setReviewFilter('all');
@@ -133,7 +136,7 @@ export default function App() {
 
   function choose(answer: Answer) {
     transact(() => {
-      if (!session || !activeId || session.completed) return;
+      if (!session || !activeId || session.completed || (session.binaryAnswers && answer === 'unknown')) return;
       const changed = session.answers[activeId] !== undefined;
       const saved = updateSession({ ...session, answers: { ...session.answers, [activeId]: answer } });
       const status = saved ? changed ? 'answerUpdated' : 'answerSaved' : 'answerNotSaved';
@@ -267,6 +270,8 @@ export default function App() {
         <button lang="en" aria-label="English" aria-pressed={language === 'en'} onClick={() => switchLanguage('en')}><FlagIcon language="en" /><span>EN</span></button>
         <span aria-hidden="true" />
         <button lang="el" aria-label="Ελληνικά" aria-pressed={language === 'el'} onClick={() => switchLanguage('el')}><FlagIcon language="el" /><span>ΕΛ</span></button>
+        <span aria-hidden="true" />
+        <button lang="fr" aria-label="Français" aria-pressed={language === 'fr'} onClick={() => switchLanguage('fr')}><FlagIcon language="fr" /><span>FR</span></button>
       </div>
     </header>
 
@@ -285,8 +290,13 @@ export default function App() {
         <section className="welcome-card">
           <div className="card-label"><span className="eyebrow">{t.before}</span><Icon name="sparkle" className="small-flower" /></div>
           <ol className="instructions">
-            {(['One', 'Two', 'Three'] as const).map((number, index) => <li key={number}><span className="instruction-number" aria-hidden="true">0{index + 1}</span><div><h2>{t[`instruction${number}`]}</h2><p>{t[`instruction${number}Detail`]}</p></div></li>)}
+            {(['One', 'Two', 'Three'] as const).map((number, index) => <li key={number}><span className="instruction-number" aria-hidden="true">0{index + 1}</span><div><h2>{number === 'Three' && binaryAnswers ? t.binaryInstruction : t[`instruction${number}`]}</h2><p>{number === 'Three' && binaryAnswers ? t.binaryInstructionDetail : t[`instruction${number}Detail`]}</p></div></li>)}
           </ol>
+          <div className="quiz-mode" onMouseEnter={() => setModeHelpDismissed(false)} onFocus={() => setModeHelpDismissed(false)} onKeyDown={event => { if (event.key === 'Escape') setModeHelpDismissed(true); }}>
+            <label className="preference-option"><input type="checkbox" aria-describedby="get2-mode-help" checked={binaryAnswers} disabled={Boolean(session && !session.completed)} onChange={event => setBinaryAnswers(event.target.checked)} />{t.binaryAnswers}</label>
+            <button type="button" className="quiz-mode-help-button" aria-label={t.binaryAnswers} aria-describedby="get2-mode-help" onClick={() => setModeHelpDismissed(false)}>?</button>
+            <span id="get2-mode-help" role="tooltip" className={`quiz-mode-tooltip${modeHelpDismissed ? ' dismissed' : ''}`}>{t.binaryAnswersHelp}</span>
+          </div>
           {session && !session.completed ? <div className="resume-block">
             <h2>{t.resumeTitle}</h2><p>{answeredCount} / 54 {t.answered}. {t.resumeText}</p>
             <button className="button primary start-button" onClick={() => { setFromReview(false); setScreen('question'); }}>{t.continue}<Icon name="arrow-right" /></button>
@@ -305,7 +315,7 @@ export default function App() {
         <QuestionProgress answered={answeredCount} language={language} />
         <section className="question-card">
           <p className="question-intro">{t.questionInstruction}</p>
-          <h1 id="question-text" aria-describedby="question-position" tabIndex={-1} data-page-heading>{language === 'en' ? question.english : question.greek}</h1>
+          <h1 id="question-text" aria-describedby="question-position" tabIndex={-1} data-page-heading>{language === 'fr' ? question.french : language === 'en' ? question.english : question.greek}</h1>
           <fieldset className="answer-options" aria-labelledby="question-text">
             <legend className="sr-only">{t.questionInstruction}</legend>
             {answerChoices.map((answer, index) => <label key={answer} className={`answer-option ${selected === answer ? 'selected' : ''}`}>
@@ -317,7 +327,7 @@ export default function App() {
           <p className="original-question-number">{t.originalQuestion} {question.id}</p>
         </section>
           <div className="question-navigation"><button className="button secondary" disabled={session.currentIndex === 0} onClick={() => move(-1)}><Icon name="arrow-left" />{t.previous}</button><button className="button primary" disabled={!selected} onClick={() => fromReview ? setScreen('review') : move(1)}>{fromReview ? t.backReview : session.currentIndex === 53 ? t.review : t.next}<Icon name="arrow-right" /></button></div>
-        <p className="keyboard-hint">{t.keyboard} <kbd>1</kbd> {t.keyAgree} <span>·</span> <kbd>2</kbd> {t.keyDisagree} <span>·</span> <kbd>3</kbd> {t.keyUnknown} <span>·</span> <kbd>Enter</kbd> {t.keyEnter}</p>
+        <p className="keyboard-hint">{t.keyboard} <kbd>1</kbd> {t.keyAgree} <span>·</span> <kbd>2</kbd> {t.keyDisagree} <span>·</span> {!session.binaryAnswers && <><kbd>3</kbd> {t.keyUnknown} <span>·</span></>} <kbd>Enter</kbd> {t.keyEnter}</p>
         <div className="session-footer"><p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p><button className="text-button subdued" onClick={requestNew}>{t.restart}</button></div>
       </>}
 
@@ -326,9 +336,9 @@ export default function App() {
         <section className="review-card">
           <div className="review-total"><h2>{t.totalQuestions}</h2><strong>54</strong></div>
           <dl className="review-counts">{answerChoices.map(answer => <div key={answer}><dt>{t[answer]}</dt><dd>{counts[answer]}</dd></div>)}<div><dt>{t.unanswered}</dt><dd>{54 - answeredCount}</dd></div></dl>
-          <div className="navigator-legend"><span><i className="normal" aria-hidden="true"><Icon name="check" /></i>{t.normalResponse}</span><span><i className="unknown" aria-hidden="true"><Icon name="help" /></i>{t.unknown}</span><span><i className="unanswered" aria-hidden="true"><Icon name="minus" /></i>{t.unanswered}</span></div>
+          <div className="navigator-legend"><span><i className="normal" aria-hidden="true"><Icon name="check" /></i>{t.normalResponse}</span>{!session.binaryAnswers && <span><i className="unknown" aria-hidden="true"><Icon name="help" /></i>{t.unknown}</span>}<span><i className="unanswered" aria-hidden="true"><Icon name="minus" /></i>{t.unanswered}</span></div>
           <div className="review-filters" role="group" aria-label={t.reviewFilters}>
-            {(['all', 'unknown', 'unanswered'] as const).map(filter => <button key={filter} aria-pressed={reviewFilter === filter} onClick={() => {
+            {(['all', 'unknown', 'unanswered'] as const).filter(filter => !session.binaryAnswers || filter !== 'unknown').map(filter => <button key={filter} aria-pressed={reviewFilter === filter} onClick={() => {
               setReviewFilter(filter); announce(`${filterQuestions(session.questionOrder, session.answers, filter).length} ${t.questionsShown}`);
             }}>{t[`${filter}Filter`]} <span>{filter === 'all' ? 54 : filter === 'unknown' ? counts.unknown : 54 - answeredCount}</span></button>)}
           </div>
@@ -337,7 +347,7 @@ export default function App() {
             const answer = session.answers[id];
             return <button key={id} className={answer === 'unknown' ? 'unknown' : answer ? 'normal' : 'unanswered'} aria-label={`${t.question} ${index + 1}: ${answer ? t[answer] : t.questionUnanswered}`} onClick={() => transact(() => { updateSession({ ...session, currentIndex: index }); setFromReview(true); setScreen('question'); })}>{index + 1}<small aria-hidden="true">{answer === 'unknown' ? <Icon name="help" /> : answer ? <Icon name="check" /> : <Icon name="minus" />}</small></button>;
           })}</nav>
-          <p className={`review-readiness ${answeredCount === 54 ? 'ready' : ''}`}>{answeredCount === 54 ? t.ready : t.remaining}</p>
+          <p className={`review-readiness ${answeredCount === 54 ? 'ready' : ''}`}>{answeredCount === 54 ? t.ready : (session.binaryAnswers ? t.binaryRemaining : t.remaining)}</p>
           <button className="button primary calculate-button" disabled={answeredCount !== 54} onClick={finish}>{t.calculate}<Icon name="arrow-right" /></button>
         </section>
         <div className="session-footer"><p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p><button className="text-button subdued" onClick={requestNew}>{t.restart}</button></div>

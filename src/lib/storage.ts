@@ -4,7 +4,7 @@ import { categories } from '../data/questions.ts';
 import { calculateResult, validAnswers } from './scoring.ts';
 import type { Answers, Result, Score } from './scoring.ts';
 
-export type Language = 'en' | 'el';
+export type Language = 'en' | 'el' | 'fr';
 export type TestSession = {
   version: 2;
   questionOrder: number[];
@@ -12,6 +12,7 @@ export type TestSession = {
   currentIndex: number;
   language: Language;
   completed: boolean;
+  binaryAnswers?: boolean;
 };
 
 export const keys = {
@@ -27,8 +28,10 @@ export function validSession(value: unknown): value is TestSession {
       value.questionOrder.length !== 54 || new Set(value.questionOrder).size !== 54 ||
       !value.questionOrder.every(id => Number.isInteger(id) && id >= 1 && id <= 54) ||
       !Number.isInteger(value.currentIndex) || Number(value.currentIndex) < 0 || Number(value.currentIndex) > 53 ||
-      (value.language !== 'en' && value.language !== 'el') || typeof value.completed !== 'boolean' ||
+      (value.language !== 'en' && value.language !== 'el' && value.language !== 'fr') || typeof value.completed !== 'boolean' ||
       !isObject(value.answers)) return false;
+  if (value.binaryAnswers !== undefined && typeof value.binaryAnswers !== 'boolean') return false;
+  if (value.binaryAnswers && Object.values(value.answers).includes('unknown')) return false;
   return validAnswers(value.answers, value.completed);
 }
 
@@ -71,7 +74,7 @@ export function loadState() {
   const browserLanguage = typeof navigator === 'undefined' ? 'en' : navigator.language;
   try {
     const session = readStored(localStorage, keys.session, validSession);
-    const language = readStored(localStorage, keys.language, (value): value is Language => value === 'en' || value === 'el');
+    const language = readStored(localStorage, keys.language, (value): value is Language => value === 'en' || value === 'el' || value === 'fr');
     const saved = readStored(localStorage, keys.current, validResult);
     // A current result is derived only from the active completed session.
     const current = session?.completed ? calculateResult(session.answers, saved?.completedAt) : null;

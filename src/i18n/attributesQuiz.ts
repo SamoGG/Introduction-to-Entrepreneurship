@@ -1,4 +1,6 @@
-export const quizTranslations = {
+import { frenchQuiz } from './frenchQuiz.ts';
+
+const baseQuizTranslations = {
   en: {
     inDepthExplanation: 'More in-depth explanations of the five attributes',
     instantFeedback: 'Show instant feedback',
@@ -94,3 +96,6 @@ export const quizTranslations = {
     bands: ['Εξαιρετική κατανόηση', 'Πολύ καλή κατανόηση', 'Καλή κατανόηση', 'Κατανόηση σε εξέλιξη', 'Συνιστάται επανάληψη'], feedback: ['Πολύ καλή κατανόηση', 'Καλή γενική κατανόηση', 'Χρειάζεται επανάληψη', 'Μελετήστε ξανά αυτό το χαρακτηριστικό'],
   },
 };
+
+export type QuizCopy = typeof baseQuizTranslations.en;
+export const quizTranslations = { ...baseQuizTranslations, fr: frenchQuiz };

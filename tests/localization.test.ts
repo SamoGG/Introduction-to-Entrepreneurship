@@ -39,3 +39,9 @@ test('learning features have complete distinct Greek translations', () => {
     assert.match(quizTranslations.el.explanations[category], /[Α-ω]/);
   }
 });
+
+test('French covers the full application and quiz translation keys', () => {
+  assert.deepEqual(Object.keys(translations.fr).sort(), Object.keys(translations.en).sort());
+  assert.deepEqual(Object.keys(quizTranslations.fr).sort(), Object.keys(quizTranslations.en).sort());
+  for (const value of Object.values(translations.fr)) assert.ok(value.trim());
+});

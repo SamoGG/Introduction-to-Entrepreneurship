@@ -29,7 +29,7 @@ export function validQuizSession(value: unknown): value is QuizSession {
   if (!isRecord(value) || value.version !== 2 || typeof value.instantFeedback !== 'boolean' || !permutation(value.questionOrder, questionIds) ||
       !isRecord(value.optionOrder) || Object.keys(value.optionOrder).length !== 54 ||
       !Number.isInteger(value.currentIndex) || Number(value.currentIndex) < 0 || Number(value.currentIndex) >= 54 ||
-      (value.language !== 'en' && value.language !== 'el') || typeof value.completed !== 'boolean' ||
+      (value.language !== 'en' && value.language !== 'el' && value.language !== 'fr') || typeof value.completed !== 'boolean' ||
       !validQuizAnswers(value.answers, value.completed)) return false;
   const options = value.optionOrder;
   return questionIds.every(id => Object.hasOwn(options, id) && permutation(options[id], categories));

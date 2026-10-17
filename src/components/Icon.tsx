@@ -64,7 +64,8 @@ export function Icon({ name, className = '', ...props }: IconProps) {
   }
 }
 
-export function FlagIcon({ language, className = '' }: { language: 'en' | 'el'; className?: string }) {
+export function FlagIcon({ language, className = '' }: { language: 'en' | 'el' | 'fr'; className?: string }) {
+  if (language === 'fr') return <svg className={`flag-icon ${className}`.trim()} viewBox="0 0 30 20" aria-hidden="true" focusable="false"><path fill="#002395" d="M0 0h10v20H0z" /><path fill="#fff" d="M10 0h10v20H10z" /><path fill="#ED2939" d="M20 0h10v20H20z" /></svg>;
   if (language === 'el') {
     return <svg className={`flag-icon ${className}`.trim()} viewBox="0 0 27 18" aria-hidden="true" focusable="false">
       <rect width="27" height="18" rx="1.5" fill="#fff" />
