@@ -9,14 +9,22 @@ test('French binary test persists its mode, excludes unknown shortcuts and trans
   await expect(page.getByRole('radio')).toHaveCount(2);
   await page.keyboard.press('3');
   await expect(page.getByRole('button', { name: 'Suivant', exact: true })).toBeDisabled();
-  await page.getByRole('radio', { name: 'D’accord', exact: true }).check();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('get2-active-session')!).binaryAnswers)).toBe(true);
+  const agree = page.getByRole('radio', { name: 'D’accord', exact: true });
+  // GET2 updates controlled radios after acquiring its asynchronous storage lock.
+  // check() verifies immediately after clicking; wait for the committed state instead.
+  await agree.click();
+  await expect(agree).toBeChecked();
+  await expect.poll(() => page.evaluate(() => {
+    const session = JSON.parse(localStorage.getItem('get2-active-session')!);
+    return { binaryAnswers: session.binaryAnswers, answer: session.answers[session.questionOrder[0]] };
+  })).toEqual({ binaryAnswers: true, answer: 'agree' });
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await expect(page.getByRole('checkbox', { name: 'Uniquement D’accord / Pas d’accord' })).toBeChecked();
   await expect(page.getByRole('checkbox', { name: 'Uniquement D’accord / Pas d’accord' })).toBeDisabled();
   await page.getByRole('button', { name: 'Continuer le test', exact: true }).click();
   await expect(page.getByRole('radio')).toHaveCount(2);
+  await expect(agree).toBeChecked();
   const id = await page.evaluate(() => JSON.parse(localStorage.getItem('get2-active-session')!).questionOrder[0]);
   await expect(page.locator('#question-text')).toHaveText(questions.find(q => q.id === id)!.french);
   await page.getByRole('button', { name: 'Revoir les réponses', exact: true }).click();
