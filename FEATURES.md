@@ -2,7 +2,7 @@
 
 This application provides a GET2 self-reflection questionnaire and a separate educational quiz about the framework's attributes. It uses React 19, TypeScript and Vite, with component state for navigation rather than URL routing. `App.tsx` owns the GET2 session and preferences; `useQuizSession` owns the independent Attributes Quiz session. Scoring, validation, persistence and translation dictionaries are separate modules.
 
-English and Greek are available throughout the interface. A saved language takes priority over the session language and browser-language fallback. Switching language preserves answers and question order. Dates and GET2 numeric summaries use locale-aware formatting.
+English, Greek and French are available throughout the interface through the EN / ΕΛ / FR header controls. A saved language takes priority over the GET2 session language and browser-language fallback (`el` → Greek, `fr` → French, otherwise English). Switching language preserves answers and question order. Dates and GET2 numeric summaries use locale-aware formatting.
 
 The header provides GET2 Test, Attributes Quiz and a Results menu with separate destinations for both activities. Privacy and navigation are centered across the footer. Below them, a two-column row places the author and AI-assistance credits on the left, and a concise GET2 attribution, educational-use disclaimer and source link on the right. These stack on narrow screens. Footer dialogs provide appearance/accessibility preferences, privacy information, About and deletion of saved activity data. Preferences include system/light/dark theme, larger text, high contrast and reduced motion.
 
@@ -14,11 +14,13 @@ GET/GET2 research is attributed to Sally Caird and Cliff Johnson in About and in
 
 # GET2 Test
 
-The questionnaire contains 54 statements with permanent original IDs. Users select Agree, Disagree or I don't know. Presentation order is randomized; the shuffle avoids three consecutive statements from the same category. Original question numbering appears separately from the current presentation position.
+The questionnaire contains 54 statements with permanent original IDs. By default, users select Agree, Disagree or I don't know. Presentation order is randomized; the shuffle avoids three consecutive statements from the same category. Original question numbering appears separately from the current presentation position.
 
-Answers and the current position autosave. Returning users can continue an unfinished attempt. Selecting an answer does not advance automatically. Number keys 1–3 select responses; Enter advances after selection. Left/right arrows navigate when appropriate. Native radio arrow-key behavior is preserved, and shortcuts are suppressed in dialogs, editable controls and other interactive contexts.
+The welcome screen offers an **Agree / Disagree only** mode, OFF by default. When enabled, the questionnaire has two radio options, no unknown keyboard shortcut, and no unknown count, legend or filter in review. Instructions and completion guidance adapt to the mode. The checkbox has a localized tooltip available on hover, focus or its touch help button; Escape dismisses it. Mode is fixed for an unfinished attempt, saved as optional `binaryAnswers` in the version 2 GET2 session, restored on resume and retained for retakes. After completion, the welcome screen allows choosing the next attempt's mode. Older sessions without the field use three responses. Binary sessions containing unknown answers are invalid. Scoring and permanent IDs are identical in both modes; completed binary attempts have 100% coverage.
 
-The review screen shows response counts, completion readiness and a question navigator. Filters show all questions, unknown responses or unanswered items. Users can revisit and edit answers; calculation requires all 54 responses, including explicit unknowns.
+Answers and the current position autosave. Returning users can continue an unfinished attempt. Selecting an answer does not advance automatically. Number keys 1–3 select responses (1–2 in binary mode); Enter advances after selection. Left/right arrows navigate when appropriate. Native radio arrow-key behavior is preserved, and shortcuts are suppressed in dialogs, editable controls and other interactive contexts.
+
+The review screen shows response counts, completion readiness and a question navigator. Filters show all questions, unknown responses or unanswered items; binary mode omits the unknown filter. Users can revisit and edit answers; calculation requires all 54 responses, including explicit unknowns when three-response mode is used.
 
 The original scoring key is based on permanent IDs: Agree earns one point on even IDs and Disagree earns one point on odd IDs. Other responses earn no points. “I don't know” counts toward completion, earns no points and reduces response coverage. The maximum score remains 54; there is no prorating. Response coverage is definite Agree/Disagree answers divided by the number of statements.
 
@@ -36,7 +38,7 @@ Restarting an unfinished GET2 test requires confirmation and clears its answers 
 
 # Attributes Quiz
 
-This is an educational classification exercise, not an assessment of the user's personality or entrepreneurial tendency. Its learning screen explains the five attributes, lists typical traits and gives a practice example. Below the five cards, a “More in-depth explanations of the five attributes” link opens <http://www.get2test.net/index.html#enterprisingPotential>, using the same destination previously linked from the GET2 welcome screen. The duplicate welcome-screen dimensions section has been removed. The second footer column links to the original GET2 resource and briefly states that this is an independent educational app, not a definitive psychological assessment. The About dialog retains the fuller source citation.
+This is an educational classification exercise, not an assessment of the user's personality or entrepreneurial tendency. Its learning screen explains the five attributes, lists typical traits and gives a practice example. Below the five cards, a “More in-depth explanations of the five attributes” link opens <http://www.get2test.net/index.html#enterprisingPotential>. The five learning cards are on the quiz learning screen; the GET2 welcome screen focuses on test instructions and answer mode. The second footer column links to the original GET2 resource and briefly states that this is an independent educational app, not a definitive psychological assessment. The About dialog retains the fuller source citation.
 
 The same 54 statements are presented in randomized order. Each statement has five attribute options, with a randomized option order saved separately for every question. Users identify the intended category, including when a statement is phrased negatively.
 
@@ -45,9 +47,9 @@ Beside the quiz start/continue/retake buttons, the learning page offers “Show 
 - **Normal mode:** selecting an attribute reveals no correctness. Users move on with Next and receive feedback after submitting.
 - **Instant-feedback mode:** pick an option, then activate **Submit answer** (or press Enter) to save and reveal the result for that question. Before submission, the choice can be changed and no correctness is shown. After submission, the answer is locked: the selected radio retains the user's actual answer, a wrong choice is marked “Your answer — incorrect”, and the correct option is highlighted and labeled “Correct answer”. The explanatory sentence appears in a polite, atomic status region. Next becomes available after a 700 millisecond guard and advances only when activated. Returning to a submitted question restores its feedback and locked answer. Normal-mode answers remain editable.
 
-Unsubmitted choices are temporary in-memory drafts and do not count toward completion; reloading discards them. Submitted answers use the existing saved answers map, so no additional storage schema is needed. Existing saved instant-feedback answers are treated as submitted because their feedback was already revealed by the previous implementation.
+In instant-feedback mode, unsubmitted choices are temporary in-memory drafts and do not count toward completion; reloading discards them. Submitted answers use the existing saved answers map, so no additional storage schema is needed. Existing saved instant-feedback answers are treated as submitted because their feedback was already revealed by the previous implementation.
 
-Mode is fixed for an unfinished attempt, with its checkbox shown disabled on the learning page. The selected mode is retained for retakes; returning to the learning page after completion allows choosing the next attempt's mode. Version 2 sessions persist `instantFeedback` alongside question order, option orders, answers, position, language and completion. Valid version 1 sessions migrate in memory to version 2 with feedback OFF and save in the new format on the next change. Corrupt or unsupported sessions are rejected safely.
+Mode is fixed for an unfinished attempt, with its checkbox shown disabled on the learning page. The selected instant-feedback mode is retained for retakes; returning to the learning page after completion allows choosing the next attempt's mode. Version 2 sessions persist `instantFeedback` alongside question order, option orders, answers, position, language and completion. Valid version 1 sessions migrate in memory to version 2 with feedback OFF and save in the new format on the next change. Corrupt or unsupported sessions are rejected safely.
 
 Quiz progress autosaves independently of GET2. Resume restores both orders and the mode. Keys 1–5 select displayed attribute options before submission; Enter submits a draft or advances after feedback. Navigation arrows respect the submission and feedback guard. Review provides a question navigator and remaining count; all 54 answers are required for submission. Retaking resets quiz answers and randomizes both orders without changing GET2 data.
 
@@ -59,7 +61,7 @@ GET2 results show the total score out of 54, percentage of the maximum, classifi
 
 Existing classification thresholds remain unchanged: overall medium begins at 27 and high at 44; autonomy medium begins at 3 and high at 4; other dimensions medium begins at 7 and high at 10. With no definite responses, classification is unavailable while raw score remains zero. Coverage of 60–79% produces a reduced-coverage notice; below 60% produces a low-coverage notice.
 
-A profile compares dimensions on a common percentage scale and distinguishes dimensions without definite responses. Its text summary uses dimensions with at least 60% coverage. If a previous completed result exists, a comparison table includes score differences and coverage for the total and each dimension.
+A profile compares dimensions on a common percentage scale and distinguishes dimensions without definite responses. Its text summary requires at least three dimensions with at least 60% coverage. A spread below 10 percentage points yields a balanced summary; otherwise it highlights eligible dimensions within five points of the highest percentage. Dimensions with no definite responses are marked N/A and omitted from the plotted points; incomplete profiles have no filled polygon. If a previous completed result exists, a comparison table includes score differences and coverage for the total and each dimension.
 
 Users can copy a localized text summary or open the browser print dialog to print/save as PDF. Clipboard failure provides a selectable text fallback. Results include reflection/interpretation disclaimers and do not claim to diagnose personality or determine ability.
 
@@ -81,19 +83,31 @@ Confusion analysis reports up to two most frequent directional category confusio
 
 | Key | Persisted data |
 | --- | --- |
-| `get2-active-session` | GET2 question order, answers, position, language and completion (version 2) |
+| `get2-active-session` | GET2 question order, answers, position, language, completion and optional `binaryAnswers` mode (version 2) |
 | `get2-current-result` | Current GET2 answers, scores and completion timestamp (version 4) |
-| `get2-previous-result` | Previous completed GET2 result |
+| `get2-previous-result` | Previous completed GET2 answers, scores and timestamp (version 4) |
 | `attributes-quiz-session` | Quiz orders, answers, position, language, completion and feedback mode (version 2) |
 | `get2-language` | Selected interface language |
 | `get2-preferences` | Theme and accessibility preferences (version 1) |
 
+Each fresh page load opens the GET2 welcome screen, preserving saved attempts. Continue restores GET2 answers and position; View Results opens a completed attempt. Attributes Quiz opens its learning screen with start/continue/retake controls. The header Results menu has separate GET2 and quiz destinations, with a localized start/continue prompt when results are unavailable. Only the current and immediately previous GET2 results are retained; the quiz stores one attempt and derives results from its saved answers.
+
+GET2 current results are recalculated from the active completed session, never accepted from a standalone result. Version 4 result records must reproduce all scores, coverage and classifications from their complete answer snapshot. Earlier result schemas are rejected as comparisons; valid version 2 completed sessions can be recalculated. Version 1 GET2 sessions are not resumed. Quiz version 1 sessions migrate to version 2 with instant feedback OFF.
+
 Deletion requires confirmation and removes GET2 and quiz data while retaining language and appearance/accessibility preferences. Browser site-data controls can remove all data. Data is specific to the browser/device and may be lost when browser storage is cleared. There is no cross-device synchronization.
 
-The app responds to browser storage changes across tabs. Quiz persistence serializes writes through Web Locks where supported, checks snapshots to detect competing changes and cancels pending writes after deletion or a remote change. It also refreshes on focus. Without Web Locks, quiz writes use the synchronous fallback; this is not a server synchronization system.
+The app responds to browser storage changes across tabs. GET2 serializes mutations with a shared Web Lock when available, compares saved records before writing and returns to welcome with a notice after a competing change. Without Web Locks it still checks for stale state, but simultaneous writes cannot be guaranteed to serialize. Quiz persistence serializes writes through Web Locks where supported, checks snapshots to detect competing changes and cancels pending writes after deletion or a remote change. It also refreshes on focus. Without Web Locks, quiz writes use the synchronous fallback; this is not a server synchronization system.
 
-English and Greek translation dictionaries cover controls, results, explanations, dialogs, source references and accessible labels. Original author names, GET2 and the cited publication's formal English title remain proper names. Questionnaire statements and category mappings are shared by both activities and were not changed for these features.
+English, Greek and French translation dictionaries cover controls, results, explanations, dialogs, source references and accessible labels. Original author names, GET2 and the cited publication's formal English title remain proper names. Questionnaire statements and category mappings are shared by both activities. Each statement contains `english`, `greek` and `french` text; changing language preserves IDs, mappings, scoring and saved orders.
 
 Source links use readable localized text without a parenthetical new-tab notice, and use `target="_blank"` with `rel="noopener noreferrer"`. Following a link visits an external site; that site's behavior is outside the application's storage/privacy controls.
 
 Design constraints: no backend, accounts, analytics or tracking; no changes to established GET2 scoring or mappings; no definitive psychological interpretation; no claim of institutional endorsement. Source attribution does not establish a questionnaire reuse license. Deployment contact information and licensing verification remain existing project follow-up items in source comments.
+
+## Development and deployment
+
+The project requires Node.js 22.18 or newer. `npm ci` installs locked dependencies; `npm run dev` starts Vite on localhost:5173. `npm test` runs Node's TypeScript logic suite; `npm run typecheck` checks TypeScript; `npm run build` typechecks and writes `dist/`. `npm run preview` serves that build on localhost:4173. `npm run test:e2e` builds and starts its own production preview for Playwright Chromium. Install Chromium first with `npx playwright install chromium` (or `--with-deps chromium` in Linux containers); an existing browser can be supplied with `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`.
+
+The included development container supplies Node 22, installs with `npm ci`, isolates `node_modules` in a Docker volume and forwards ports 5173/4173. GitHub Pages deployment runs on pushes to `main` or manual dispatch: locked install, logic tests, typechecked build, Chromium installation and browser tests gate upload of `dist/`. Build has `contents: read`; deployment has `pages: write` and `id-token: write`. Relative assets and state-based navigation support repository subdirectories without routing rewrites. No service worker is installed.
+
+See [README.md](README.md) for setup instructions and [the security notes](security/STATIC_APP_SECURITY.md) for browser policies, local-storage boundaries and the dated audit record.

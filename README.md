@@ -2,7 +2,14 @@
 
 Made by **Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas**.
 
-A small, static React + TypeScript application in English and Greek. Responses and the immediately previous result stay in localStorage on the participant’s device. No backend, accounts, cookies, analytics, external fonts, or runtime content requests.
+A static React 19 + TypeScript + Vite application in **English, Greek and French**, with two independent activities:
+
+- **GET2 Test:** a 54-statement self-reflection questionnaire, with optional Agree/Disagree-only answers, review, scoring, a dimension profile and comparison with the previous completed attempt.
+- **Attributes Quiz:** learn the five GET2 attributes, then identify the attribute behind each statement, with optional instant feedback and a separate understanding score.
+
+Progress, GET2 current/previous results, the quiz's latest attempt and display preferences stay in localStorage on the participant’s device. There is no backend, account system, cookies, analytics, external fonts or runtime content fetching. External source links open other sites when followed.
+
+See [FEATURES.md](FEATURES.md) for detailed behavior and [security/STATIC_APP_SECURITY.md](security/STATIC_APP_SECURITY.md) for security boundaries and the historical audit.
 
 ## Run
 
@@ -38,7 +45,7 @@ After changing container configuration, use **Dev Containers: Rebuild Container*
 Use Node.js 22.18 or newer.
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
@@ -55,21 +62,23 @@ Publish the `dist/` directory on any static host. The relative Vite base support
 1. Create a GitHub repository and push this project to its `main` branch. Include `.github/workflows/deploy.yml` and `package-lock.json`; do not upload `node_modules/` or `dist/` to Git.
 2. In the repository, open **Settings → Pages → Build and deployment → Source**, and choose **GitHub Actions**.
 3. Open **Actions → Deploy to GitHub Pages → Run workflow**, or push a change to `main`.
-4. The workflow installs dependencies, runs the logic tests and TypeScript checks, builds, and deploys `dist/`. Share the URL shown by the deployment, usually `https://USERNAME.github.io/REPOSITORY/`.
+4. The workflow installs dependencies, runs the logic tests and TypeScript checks, builds, runs the production Chromium browser tests, and deploys `dist/`. Share the URL shown by the deployment, usually `https://USERNAME.github.io/REPOSITORY/`.
 
 Future pushes to `main` update the same site. Students only need the link and a browser; your Mac and Docker do not need to stay running. Responses remain in each student's browser and are not collected by the site owner. Use the same site address to resume saved progress.
 
 The project uses relative assets (`base: './'`), no history routing, and no external runtime services. The production tests serve the built files under a repository subdirectory to check loading and refresh. There is no service worker, so no extra offline cache/version management is needed.
 
-Official deployment reference: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+Deployment is configured in [.github/workflows/deploy.yml](.github/workflows/deploy.yml).
 
 ## Questionnaire content
 
-All 54 English statements match the canonical wording supplied by the application owner, including punctuation. Every statement has a faithful contemporary Greek translation, preserving its polarity and intensity.
+All 54 English statements match the canonical wording supplied by the application owner, including punctuation. Every statement includes Greek and French translations alongside the English source wording.
 
-All 54 objects are written directly in `src/data/questions.ts`; each pairs both languages with a permanent ID and category. The English text is the source of truth. Switching language never changes question identity, answers, order, categories, or scoring.
+All 54 objects are written directly in `src/data/questions.ts`; each contains all three languages with a permanent ID and category. The English text is the source of truth. Switching language never changes question identity, answers, order, categories, or scoring.
 
-Session version 2 identifies the completed questionnaire; result version 4 identifies coverage-weighted scoring with a saved answer snapshot. Earlier version 1 attempts used placeholder statements and are not resumed or compared with these results. The saved language preference is retained.
+The GET2 welcome screen offers an **Agree / Disagree only** checkbox, OFF by default. It removes “I don’t know”, its keyboard shortcut and its review counts/filter. The mode is fixed during an unfinished attempt, persists with the session and can be changed before a retake. It does not change the scoring key; a completed binary attempt has 100% response coverage. Existing version 2 sessions without `binaryAnswers` retain the three-response mode. Binary sessions containing unknown answers are rejected.
+
+Session version 2 identifies the current questionnaire schema; result version 4 identifies coverage-weighted scoring with a saved answer snapshot. Earlier version 1 attempts used placeholder statements and are not resumed or compared with these results. The saved language preference is retained.
 
 ## Scoring and storage
 
@@ -78,8 +87,16 @@ Session version 2 identifies the completed questionnaire; result version 4 ident
 - Classification uses the final score: 12-item dimensions have Medium/High thresholds of 7/10, Autonomy 3/4, and overall 27/44. All unknown yields 0 / maximum, 0% coverage, and N/A classification. Any nonzero coverage uses the unchanged thresholds; the score is always visible. Overall points equal the sum of dimension points.
 - Coverage measures definite Agree/Disagree responses, not statistical confidence. Thresholds for coverage notices are 60% and 80%.
 - Fisher–Yates with small safe swaps prevents triples from the same category. Order is generated only when starting or restarting, then saved with answers keyed by permanent ID.
-- The test/language storage keys are `get2-active-session`, `get2-current-result`, `get2-previous-result`, and `get2-language`. Display preferences use `get2-preferences` (version 1). Corrupt or incompatible stored records are ignored. Version 2 prorated results and version 3 results without answer evidence are rejected as comparison records. Valid version 2 test sessions remain compatible: unfinished answers resume unchanged, and completed session answers are recalculated under version 4 when no compatible current result exists. Language, theme, and accessibility preferences are preserved. If saving is blocked, the app shows a warning and remains usable in memory. Every fresh page load opens the welcome screen; Continue Test restores saved answers and position, and View Results opens a completed test.
-- Results can be copied in the selected language or printed/saved as PDF through the browser. Clipboard failure offers a selectable summary; print failure shows a localized message. Only the current and immediately previous completed result are retained.
+- The test/language storage keys are `get2-active-session`, `get2-current-result`, `get2-previous-result`, and `get2-language`. Display preferences use `get2-preferences` (version 1). Corrupt or incompatible stored records are ignored. Version 2 prorated results and version 3 results without answer evidence are rejected as comparison records. Valid version 2 test sessions remain compatible: unfinished answers resume unchanged, and completed session answers are recalculated under version 4 when no compatible current result exists. Language, theme, and accessibility preferences are preserved. If saving is blocked, the app shows a warning and remains usable in memory. Every fresh page load opens the GET2 welcome screen; Continue Test restores saved answers and position, and View Results opens a completed test.
+- Results can be copied in the selected language or printed/saved as PDF through the browser. Clipboard failure offers a selectable summary; print failure shows a localized message. Only the current and immediately previous completed GET2 result are retained. Quiz results are calculated from its completed saved session; quiz retakes replace that attempt without changing GET2 data.
+
+## Attributes Quiz
+
+Open **Attributes Quiz** in the header to read definitions, traits and a practice example for the five attributes. The quiz uses the same 54 statements, with independently randomized question order and five randomized attribute options per question. Neither its answers nor its score affect the GET2 test.
+
+**Show instant feedback** defaults to OFF. In normal mode, selections autosave and remain editable until completion. In instant-feedback mode, select an option and use **Submit answer** to save it, reveal the correct attribute and explanation, and lock the answer. Unsubmitted selections are temporary drafts. Next becomes available after a 700 ms guard; advancing remains a separate action. The mode is fixed for an unfinished attempt and retained for retakes.
+
+All 54 answers are required to submit. Results show `correct / 54 × 100`, rounded for display, plus actual counts per attribute, repeated directional confusions and an expandable incorrect-answer review. This is a learning exercise, not a personality assessment. The header's **Results** menu opens either activity's results and offers a start/continue action when no completed result exists.
 
 ## Verification
 
@@ -90,15 +107,15 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Browser tests run against the production preview and cover persistence, both languages, review, keyboard controls, scoring, comparisons, copying, printing, and small screens. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to test with an existing Chromium-based browser instead of downloading one.
+Browser tests build the app and run against the production preview. They cover persistence, English/Greek flows, French binary mode and quiz rendering, review, keyboard controls, scoring, comparisons, copying, printing, small screens, instant feedback, storage failures, competing tabs and deletion. A separate test serves the build under a repository subdirectory. French translation-key completeness is also checked by the logic suite. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to test with an existing Chromium-based browser instead of downloading one.
 
-Keyboard controls: 1/2/3 select a response; Enter confirms the currently selected response and advances to the next question (or back to Review when revisiting an answer); Left/Right navigate when focus is outside the radio inputs. Radio inputs retain their standard arrow-key behavior. Selecting a response by itself never advances automatically.
+GET2 keyboard controls: 1/2/3 select Agree/Disagree/unknown (1/2 only in binary mode); Enter confirms the currently selected response and advances to the next question (or back to Review when revisiting an answer); Left/Right navigate when focus is outside the radio inputs. Radio inputs retain their standard arrow-key behavior. Selecting a response by itself never advances automatically. In the Attributes Quiz, 1–5 select displayed options; Enter advances in normal mode, or submits a draft and then advances after the guard in instant-feedback mode. Shortcuts are suppressed in dialogs and editable controls; native radio arrow keys remain available.
 
 ## Accessibility and privacy controls
 
-The shared footer on every application screen credits Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas, with localized wording in English and Greek. It also offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language defaults to Greek for an `el` browser locale unless a saved language exists. Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
+The shared footer on every application screen credits Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas, with localized wording in English, Greek and French, plus an AI-assistance disclosure and GET/GET2 source attribution. It also offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language uses the saved preference, then the GET2 session language, then the browser locale (`el` → Greek, `fr` → French, otherwise English). Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
 
-Delete Saved Data is available only in the footer and removes the active questionnaire session, current/previous results, and attributes quiz progress/results while preserving language and display preferences. Results use Retake Test as the repeat action so students can immediately start another randomized attempt. A reusable native dialog handles Escape, focus containment, and focus restoration. One polite live region announces selection/saving and completed actions.
+Delete Saved Data is available only in the footer and removes the active questionnaire session, current/previous results, and attributes quiz progress/results while preserving language and display preferences. Results use Retake Test as the repeat action so students can immediately start another randomized attempt. A reusable native dialog handles Escape, focus containment, and focus restoration. Polite live regions announce selection/saving, quiz feedback and completed actions.
 
 Profile percentages use each dimension's original maximum. The deterministic summary compares at least three dimensions with coverage of 60% or higher; it is omitted when fewer qualify. Dimensions with no definite responses are marked N/A in the chart and are not plotted as zero; an incomplete profile does not draw a filled polygon. Their raw scores remain visible as 0 / maximum. The textual scores remain the authoritative alternative. Print output always uses a white background.
 
@@ -123,8 +140,24 @@ Test-data mutations use a shared Web Lock when available and check the stored re
 
 These are consistency checks, not authentication: a user who controls the browser can still fabricate both answers and results or change displayed content. This static self-assessment does not verify identity, honesty, or completion time.
 
-Each question box shows its permanent original question number at the bottom, independently of its randomized display position and selected language.
+Each GET2 question box shows its permanent original question number at the bottom, independently of its randomized display position and selected language.
 
 ## Static app security
 
-See [the static app security audit](security/STATIC_APP_SECURITY.md) for the threat model, verified checks, and GitHub Pages header limitations. Production HTML uses a same-origin CSP and a referrer policy. Browser-delivered code and any future `VITE_*` values are public; do not put secrets in them.
+See [the static app security notes](security/STATIC_APP_SECURITY.md) for the threat model, dated audit results and GitHub Pages header limitations. Production HTML uses a same-origin CSP and a referrer policy. Browser-delivered code and any future `VITE_*` values are public; do not put secrets in them.
+
+## Source layout
+
+| Location | Responsibility |
+| --- | --- |
+| `src/App.tsx` | Activity navigation, GET2 session, shared preferences and footer dialogs |
+| `src/components/` | Attributes Quiz, GET2 results/profile, progress, dialogs, icons and source references |
+| `src/data/questions.ts` | All 54 trilingual statements, permanent IDs and canonical attribute mappings |
+| `src/i18n/` | English/Greek interface and quiz dictionaries, with separate French dictionaries |
+| `src/lib/scoring.ts`, `src/lib/profile.ts` | GET2 scoring, classifications, review filters and profile summaries |
+| `src/lib/storage.ts`, `src/lib/preferences.ts` | GET2 persistence validation, language selection and display preferences |
+| `src/lib/attributesQuiz.ts`, `src/lib/useQuizSession.ts` | Quiz scoring, session validation/migration and independent persistence |
+| `tests/` | Node logic tests (`*.test.ts`) and Playwright browser tests (`*.spec.ts`) |
+| `.devcontainer/`, `.github/workflows/deploy.yml` | Node development container and GitHub Pages CI/deployment |
+
+The app credits GET/GET2 researchers Sally Caird and Cliff Johnson and identifies itself as an independent educational implementation. Source attribution does not establish a reuse license. Source comments still track licensing verification and a verified site operator/privacy contact as deployment follow-up items.

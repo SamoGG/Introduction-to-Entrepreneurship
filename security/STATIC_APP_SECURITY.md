@@ -1,23 +1,35 @@
-# Static app security audit
+# Static app security notes and audit record
 
-Audited 2026-10-01 against the applicable categories in [benavlabs/vibe-check](https://github.com/benavlabs/vibe-check). Scope: the current working tree, seven locally available commits, production build, and HTTPS response from the deployed site. Existing uncommitted quiz work was preserved. This is a scoped review, not a guarantee of security.
+The architecture and controls below were checked against repository source on **2026-11-18** for documentation maintenance. The runtime/dependency/deployment observations in the historical verification section belong to the **2026-10-01** audit against applicable categories in [benavlabs/vibe-check](https://github.com/benavlabs/vibe-check); they are not a fresh security audit or a statement about today's deployed site. That audit covered the working tree at the time, seven locally available commits, the production build and an HTTPS response from the deployed site. This is a scoped record, not a guarantee of security.
 
 ## Architecture and data
 
-Static React/TypeScript/Vite SPA on GitHub Pages. No backend/API, database, authentication, accounts, payments, uploads, or service worker. Questionnaire and attributes-quiz answers/results, position, order, language and display preferences use browser localStorage. No analytics, external fonts, CDN scripts, or runtime content requests were found. All 54 canonical questions, unique IDs 1–54, mappings and scoring rules are bundled locally and validated by tests. Quiz correctness comes from canonical data, not DOM state.
+Static React/TypeScript/Vite SPA on GitHub Pages. No backend/API, database, authentication, accounts, payments, uploads, or service worker. Questionnaire and attributes-quiz answers/results, position, order, language and display preferences use browser localStorage. No analytics, external fonts, CDN scripts, or runtime content requests were found. All 54 canonical questions in English, Greek and French, unique IDs 1–54, mappings and scoring rules are bundled locally. Startup validates question configuration, and tests cover content structure, mappings and scoring. Quiz correctness comes from canonical data, not DOM state.
 
 Browser storage is neither encrypted nor access-controlled. People or scripts with access to the same browser origin can read/change it; GitHub Pages projects on the same host share an origin. Schema/score validation rejects corrupt records but cannot prove answers are authentic. The app is not an authoritative examination system. Clearing site data removes progress; another device/browser does not inherit it. No responses are uploaded to the administrator. This does not make claims about GitHub's ordinary hosting/access logs.
 
-## Findings and changes
+## Current storage and interaction controls
 
-- **Deletion mismatch fixed:** the footer previously deleted only GET2 data, leaving attributes-quiz progress/results. It now clears both activities, exposes deletion for quiz-only attempts, cancels queued quiz writes, and retains language, display preferences and unrelated keys. English/Greek confirmation wording was updated. Storage failures remain visible instead of claiming success.
-- **Ignore rules fixed:** `.env` and `.env.*` are ignored, with a placeholder-only `.env.example` exception. No environment files or `VITE_*` variables currently exist. Any future `VITE_*` value is public, never a secret.
+- GET2 sessions use schema version 2 with an optional `binaryAnswers` boolean. Missing means the default three-response mode. Binary sessions containing unknown answers are rejected; the mode cannot be changed during an unfinished attempt.
+- Current and previous GET2 result records use version 4 and retain complete answer evidence. Validation reconstructs scores, coverage and classifications. Current results are derived only from the active completed session; an unfinished attempt or standalone saved result cannot supply current results. Unsupported result versions are discarded as comparisons.
+- Attributes Quiz sessions use version 2, including fixed instant-feedback mode, question/option permutations and submitted answers. Version 1 migrates with feedback OFF. Parsing rejects records over 25,000 characters and invalid schemas, categories, IDs or completion claims. Quiz results are derived from saved answers rather than stored score totals.
+- Instant-feedback drafts are held in memory until submitted. Submission persists and locks the answer, reveals correctness and explanation, and enables Next after a 700 ms guard. This interaction supports learning; it is not an anti-cheating measure.
+- GET2 and quiz writes use separate Web Locks where available and compare storage snapshots to detect stale tabs. Quiz remote changes/deletion cancel queued writes, and quiz state also refreshes on focus. GET2 competing changes return to welcome with a notice. Without Web Locks, snapshot checks cannot guarantee serialization of simultaneous writes.
+- Confirmed footer deletion clears both activities while retaining language, appearance/accessibility preferences and unrelated storage. It cancels pending quiz writes before deletion. Failed saves/deletions are reported; in-memory use remains available, but unsaved progress can be lost on reload.
+- English, Greek and French dictionaries include privacy, deletion, feedback and source disclosures. Browser-language fallback recognizes `el` and `fr`; the saved preference and GET2 session language take priority. The app's privacy dialog still labels its policy date as **2026-10-01**.
+
+These controls preserve local consistency; a browser owner can inspect the bundled answer mappings, edit storage or alter the displayed UI. They do not authenticate identity, honesty or completion time.
+
+## Findings addressed by the 2026-10-01 audit
+
+- **Deletion mismatch fixed:** the footer previously deleted only GET2 data, leaving attributes-quiz progress/results. It now clears both activities, exposes deletion for quiz-only attempts, cancels queued quiz writes, and retains language, display preferences and unrelated keys. English/Greek confirmation wording was updated in that audit; French wording is now also present. Storage failures remain visible instead of claiming success.
+- **Ignore rules fixed:** `.env` and `.env.*` are ignored, with a placeholder-only `.env.example` exception. The audit found no environment files or `VITE_*` variables; the current source/configuration still contains no application environment-variable integration. Any future `VITE_*` value is public, never a secret.
 - **Browser policies added:** early CSP meta and `strict-origin-when-cross-origin` referrer meta in `index.html`. Scripts/assets are same-origin; objects and form submissions are disabled. Inline styles are allowed for React progress bars and Vite development styles. No inline scripts, unsafe-eval, wildcards or external domains are allowed. Same-origin connections preserve development compatibility; the production app performs no API requests.
 - **CI permissions narrowed:** build/test has only `contents: read`; the dependent deployment job has only `pages: write` and `id-token: write`. Official GitHub Actions, main/manual triggers, no application secrets or untrusted PR execution. Browser tests now gate artifact upload alongside unit tests, TypeScript and production build. Only `dist/` is uploaded.
 
-## Verification
+## Historical verification — 2026-10-01
 
-| Area | Result |
+| Area | Observation recorded in the 2026-10-01 audit |
 | --- | --- |
 | Secrets | No tracked `.env` files. Keyword review of source, public files, hidden configs, workflow, package files and README found no credentials. Signature scan of all seven local commits and generated assets found no secret matches. This is pattern-based review, not proof that arbitrary secrets cannot exist. |
 | Dependencies | `npm ci` succeeds; `npm audit --json` reports **0 vulnerabilities**, including dev dependencies. Manifest/lock declarations match; all resolved packages use npm's registry. React/React DOM are the only runtime dependencies; declared development tools are used. No dependency changes were needed. |
@@ -27,11 +39,27 @@ Browser storage is neither encrypted nor access-controlled. People or scripts wi
 | Copy/print | Result summary constructs intended localized scores, coverage, completion date and explanatory text explicitly; print renders the result UI. Neither serializes storage keys, schema metadata or browser identifiers. |
 | Deployment | Relative Vite base supports repository paths and root/custom-domain paths. No custom-domain CNAME exists. Live `https://samogg.github.io/Introduction-to-Entrepreneurship/` returned HTTP 200 over HTTPS with HSTS. Repository Pages settings were not inspected; local edits have not been deployed. |
 
-Validation ran in a temporary Node 22 Docker container because the host has no Node/npm. `npm test`: **42 passing**; `npm run build` (including `tsc --noEmit`): passed. Production Chromium suite covers repository-subdirectory loading, no external requests, CSP compatibility, localStorage corruption/XSS payloads, deletion, persistence, languages, copy/print and questionnaire/quiz behavior. **All 29 browser tests passed** (Chromium, production preview).
+At the time of the audit, validation ran in a temporary Node 22 Docker container because the host has no Node/npm. `npm test`: **42 passing**; `npm run build` (including `tsc --noEmit`): passed. Production Chromium suite covers repository-subdirectory loading, no external requests, CSP compatibility, localStorage corruption/XSS payloads, deletion, persistence, languages, copy/print and questionnaire/quiz behavior. **All 29 browser tests passed** (Chromium, production preview).
+
+## Validation for the current checkout
+
+Run the following in Node.js 22.18 or newer; these commands are also represented in the GitHub Pages workflow:
+
+```sh
+npm ci
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+Linux containers may need `npx playwright install --with-deps chromium`. The browser suite includes same-origin production loading, CSP behavior, corrupt/XSS storage payloads, deletion of both activities, feedback submission, multi-tab persistence, French binary-mode resume, and existing English/Greek flows. Test coverage does not establish that every language and interaction combination has been audited.
+
+For the 2026-11-18 documentation update, source, configuration and test definitions were reviewed. Runtime tests and a fresh dependency audit were not run: this host has no Node/npm executable and its Docker daemon is not running. The historical vulnerability count, bundle sizes, passing-test counts and deployed response above must not be treated as current verification. Rerun checks in a configured environment to establish current results.
 
 ## Hosting limitations
 
-GitHub Pages controls HTTP response headers; this repository cannot set arbitrary CSP/X-Frame-Options headers. Embedding is not required, but framing protection is **not enforced** by this change: `frame-ancestors` does not work in a CSP meta tag. No frame-busting JavaScript or ineffective meta headers were added. The observed host-controlled `Access-Control-Allow-Origin: *` applies to public static resources, not a private API. Header-level framing controls would require hosting/proxy support. See [CSP guidance](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy) and [GitHub Pages HTTPS documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https).
+GitHub Pages controls HTTP response headers; this repository cannot set arbitrary CSP/X-Frame-Options headers. Embedding is not required, but framing protection is **not enforced** by this change: `frame-ancestors` does not work in a CSP meta tag. No frame-busting JavaScript or ineffective meta headers were added. The observed host-controlled `Access-Control-Allow-Origin: *` applies to public static resources, not a private API. Header-level framing controls would require hosting/proxy support. Reference links: [CSP documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy) and [GitHub Pages HTTPS documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https).
 
 ## Backend-only categories
 
@@ -46,3 +74,7 @@ GitHub Pages controls HTTP response headers; this repository cannot set arbitrar
 | FILE_UPLOADS | N/A — no upload functionality. |
 | PAYMENT_WEBHOOKS | N/A — no payments or webhooks. |
 | Server debug/API-doc endpoints | N/A — only static assets are deployed. |
+
+## Deployment follow-up items
+
+Source comments still track verification of questionnaire reuse licensing and addition of a verified site operator/privacy contact. Source attribution and the independent-implementation disclaimer do not establish a reuse license or institutional endorsement. See [README.md](../README.md) and [FEATURES.md](../FEATURES.md) for the current application behavior and deployment workflow.
