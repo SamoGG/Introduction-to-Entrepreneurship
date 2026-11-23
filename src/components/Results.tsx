@@ -43,7 +43,7 @@ function ScoreBar({ score }: { score: Score }) {
   return <div className="score-track" aria-hidden="true"><span style={{ width: `${score.finalScore / score.maximum * 100}%` }} /></div>;
 }
 
-export function resultSummary(result: Result, language: Language): string {
+function resultSummary(result: Result, language: Language): string {
   const t = translations[language];
   const describe = (name: string, score: Score) => `${name}\n${formatScore(score.finalScore, language)} / ${score.maximum} — ${score.classification ? t[score.classification] : t.na}\n${t.coverage}: ${numberFormat(score.coverage, language, 0)}% (${score.known} / ${score.maximum})\n${t.unknownResponses}: ${score.unknown}`;
   return [t.title,

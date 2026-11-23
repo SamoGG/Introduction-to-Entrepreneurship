@@ -45,9 +45,6 @@ export function parseQuiz(raw: string | null): QuizSession | null {
   } catch { return null; }
 }
 
-export function loadQuiz(): QuizSession | null {
-  try { return parseQuiz(localStorage.getItem(quizKey)); } catch { return null; }
-}
 export function scoreQuiz(answers: QuizSession['answers']) {
   if (!validQuizAnswers(answers)) throw new Error('Invalid quiz answers');
   const byAttribute = Object.fromEntries(categories.map(c => [c, { correct: 0, total: questions.filter(q => q.category === c).length, percentage: 0 }])) as Record<Category, { correct: number; total: number; percentage: number }>;

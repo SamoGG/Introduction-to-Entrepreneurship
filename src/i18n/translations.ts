@@ -16,8 +16,6 @@ const en = {
   sourceLink: 'Explore the original GET2 resource at The Open University',
   sourceCitation: 'Sally Caird (2013), “General measure of Enterprising Tendency test”.',
   sourceIndependence: 'This application is an independent implementation, with no affiliation or endorsement by the original researchers or their institutions.',
-  sourceStudy: 'These five characteristics come from the GET/GET2 framework, not a definitive psychological model. The Attributes Quiz is an educational exercise for understanding that framework.',
-  dimensionHint: 'Explore the five dimensions in detail on the original GET2 website.',
 
   footerNavigation: "Information and preferences",
   aboutQuiz: "The separate educational Attributes Quiz asks you to match GET2 statements to five entrepreneurial attributes. It checks your understanding of those attributes; it does not assess your own entrepreneurial tendency.",
@@ -35,8 +33,7 @@ const en = {
   noQuizResults: "Complete the attributes quiz to see your results here.",
   activities: "Activities",
   attributeMatch: "Attributes Quiz",
-  wpTitle: "Match questions to attributes",
-  wpDescription: "Match the GET2 statements to the five entrepreneurial attributes.",
+
   originalQuestion: "Original question",
   updatedElsewhere: "Test data changed in another tab. The latest saved progress has been loaded.",
   madeBy: "Made by Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas and Quentin Bonnehon.",
@@ -106,8 +103,7 @@ const en = {
   viewResults: 'View Results',
   saved: 'Your progress is saved automatically on this device.',
   privacy: "Test answers are stored on this device. No account or analytics.",
-  framework: 'Five dimensions. One opportunity to reflect.',
-  frameworkNote: 'A perspective on your tendencies, not a definition of who you are.',
+
   question: 'Question',
   of: 'of',
   answered: 'answered',
@@ -177,11 +173,7 @@ const en = {
   creativity: 'Creative Tendency',
   risk: 'Calculated Risk-Taking',
   locus: 'Internal Locus of Control',
-  achievementShort: 'Achievement',
-  autonomyShort: 'Autonomy',
-  creativityShort: 'Creativity',
-  riskShort: 'Risk-taking',
-  locusShort: 'Personal agency',
+
   achievementDescription: 'Reflects tendencies related to setting challenging goals, persistence, responsibility and seeking feedback about performance.',
   autonomyDescription: 'Reflects a preference for independence, personal control over decisions and freedom to approach tasks in your own way.',
   creativityDescription: 'Reflects tendencies toward imagination, curiosity, generating ideas and approaching problems in unconventional ways.',
@@ -221,8 +213,6 @@ const el: typeof en = {
   sourceLink: 'Δείτε την πρωτότυπη πηγή του GET2 στο Ανοικτό Πανεπιστήμιο του Ηνωμένου Βασιλείου',
   sourceCitation: 'Sally Caird (2013), «General measure of Enterprising Tendency test» (εργαλείο μέτρησης της γενικής επιχειρηματικής τάσης).',
   sourceIndependence: 'Η εφαρμογή αποτελεί ανεξάρτητη υλοποίηση, χωρίς σύνδεση με τους αρχικούς ερευνητές ή τα ιδρύματά τους και χωρίς την έγκρισή τους.',
-  sourceStudy: 'Τα πέντε χαρακτηριστικά προέρχονται από το πλαίσιο GET/GET2 και δεν αποτελούν οριστικό ψυχολογικό μοντέλο. Το κουίζ χαρακτηριστικών είναι μια εκπαιδευτική άσκηση για την κατανόηση αυτού του πλαισίου.',
-  dimensionHint: 'Διαβάστε περισσότερα για τις πέντε διαστάσεις στον πρωτότυπο ιστότοπο του GET2.',
 
   footerNavigation: "Πληροφορίες και προτιμήσεις",
   aboutQuiz: "Το ξεχωριστό εκπαιδευτικό κουίζ χαρακτηριστικών σάς ζητά να αντιστοιχίσετε τις δηλώσεις του GET2 με πέντε επιχειρηματικά χαρακτηριστικά. Ελέγχει την κατανόηση αυτών των χαρακτηριστικών και δεν αξιολογεί τη δική σας επιχειρηματική τάση.",
@@ -240,8 +230,7 @@ const el: typeof en = {
   noQuizResults: "Ολοκληρώστε το κουίζ χαρακτηριστικών για να δείτε εδώ τα αποτελέσματά σας.",
   activities: "Δραστηριότητες",
   attributeMatch: "Κουίζ χαρακτηριστικών",
-  wpTitle: "Αντιστοίχιση ερωτήσεων με χαρακτηριστικά",
-  wpDescription: "Αντιστοιχίστε τις δηλώσεις του GET2 με τα πέντε επιχειρηματικά χαρακτηριστικά.",
+
   originalQuestion: "Αρχική ερώτηση",
   updatedElsewhere: "Τα δεδομένα άλλαξαν σε άλλη καρτέλα. Φορτώθηκε η πιο πρόσφατη αποθηκευμένη πρόοδος.",
   madeBy: "Δημιουργήθηκε από τους Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas και Quentin Bonnehon.",
@@ -311,8 +300,7 @@ const el: typeof en = {
   viewResults: 'Προβολή αποτελεσμάτων',
   saved: 'Η πρόοδός σας αποθηκεύεται αυτόματα σε αυτή τη συσκευή.',
   privacy: "Οι απαντήσεις του τεστ αποθηκεύονται σε αυτή τη συσκευή. Χωρίς λογαριασμό ή ανάλυση χρήσης.",
-  framework: 'Πέντε διαστάσεις. Μια ευκαιρία για αναστοχασμό.',
-  frameworkNote: 'Μια ματιά στις τάσεις σας, όχι ένας ορισμός του ποιοι είστε.',
+
   question: 'Ερώτηση',
   of: 'από',
   answered: 'απαντημένες',
@@ -382,11 +370,7 @@ const el: typeof en = {
   creativity: 'Δημιουργική τάση',
   risk: 'Υπολογισμένη ανάληψη ρίσκου',
   locus: 'Εσωτερικός τόπος ελέγχου',
-  achievementShort: 'Επίτευξη',
-  autonomyShort: 'Αυτονομία',
-  creativityShort: 'Δημιουργικότητα',
-  riskShort: "Ανάληψη ρίσκου",
-  locusShort: "Εσωτερικός τόπος ελέγχου",
+
   achievementDescription: 'Αποτυπώνει τάσεις που σχετίζονται με τη θέσπιση απαιτητικών στόχων, την επιμονή, την υπευθυνότητα και την αναζήτηση ανατροφοδότησης για την απόδοση.',
   autonomyDescription: 'Αποτυπώνει την προτίμηση για ανεξαρτησία, προσωπικό έλεγχο των αποφάσεων και ελευθερία προσέγγισης των εργασιών με τον δικό σας τρόπο.',
   creativityDescription: 'Αποτυπώνει τάσεις προς τη φαντασία, την περιέργεια, τη δημιουργία ιδεών και την προσέγγιση προβλημάτων με μη συμβατικούς τρόπους.',

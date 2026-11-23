@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { categories, questions } from '../src/data/questions.ts';
-import { attributeBand, createQuiz, loadQuiz, overallBand, parseQuiz, quizKey, scoreQuiz, validQuizSession } from '../src/lib/attributesQuiz.ts';
+import { attributeBand, createQuiz, overallBand, parseQuiz, quizKey, scoreQuiz, validQuizSession } from '../src/lib/attributesQuiz.ts';
 import { keys } from '../src/lib/storage.ts';
 const correct = Object.fromEntries(questions.map(q => [q.id, q.category]));
 const wrong = Object.fromEntries(questions.map(q => [q.id, categories[(categories.indexOf(q.category) + 1) % 5]]));
@@ -46,15 +46,12 @@ test('educational feedback uses exact unrounded thresholds', () => {
 });
 test('persistence validates permutations and retake leaves GET2 data intact', () => {
   const data = new Map<string,string>([[keys.session, 'untouched GET2']]);
-  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {getItem: (key: string) => data.get(key) ?? null} });
-  try {
-    const s = createQuiz('el'); s.answers = {1: 'achievement'}; s.currentIndex = 3;
-    data.set(quizKey, JSON.stringify(s)); assert.deepEqual(loadQuiz(), s);
-    const retake = createQuiz('en'); data.set(quizKey, JSON.stringify(retake));
-    assert.deepEqual(retake.answers, {}); assert.equal(retake.currentIndex, 0); assert.equal(retake.completed, false);
-    assert.equal(data.get(keys.session), 'untouched GET2');
-    for (const invalid of [{...s, questionOrder: Array(54).fill(1)}, {...s, optionOrder: {}}, {...s, completed: true}, {...s, answers: {55: 'risk'}}, {...s, currentIndex: 54}]) { data.set(quizKey, JSON.stringify(invalid)); assert.equal(loadQuiz(), null); }
-  } finally { Reflect.deleteProperty(globalThis, 'localStorage'); }
+  const s = createQuiz('el'); s.answers = {1: 'achievement'}; s.currentIndex = 3;
+  data.set(quizKey, JSON.stringify(s)); assert.deepEqual(parseQuiz(data.get(quizKey) ?? null), s);
+  const retake = createQuiz('en'); data.set(quizKey, JSON.stringify(retake));
+  assert.deepEqual(retake.answers, {}); assert.equal(retake.currentIndex, 0); assert.equal(retake.completed, false);
+  assert.equal(data.get(keys.session), 'untouched GET2');
+  for (const invalid of [{...s, questionOrder: Array(54).fill(1)}, {...s, optionOrder: {}}, {...s, completed: true}, {...s, answers: {55: 'risk'}}, {...s, currentIndex: 54}]) { data.set(quizKey, JSON.stringify(invalid)); assert.equal(parseQuiz(data.get(quizKey) ?? null), null); }
 });
 
 test('scoring rejects forged values, extra IDs and inherited answer objects', () => {

@@ -79,4 +79,4 @@ GitHub Pages controls HTTP response headers; this repository cannot set arbitrar
 
 ## Deployment follow-up items
 
-Source comments still track verification of questionnaire reuse licensing and addition of a verified site operator/privacy contact. Source attribution and the independent-implementation disclaimer do not establish a reuse license or institutional endorsement. See [README.md](../README.md) and [FEATURES.md](../FEATURES.md) for the current application behavior and deployment workflow.
+Source comments still track verification of questionnaire reuse licensing and addition of a verified site operator/privacy contact. Source attribution and the independent-implementation disclaimer do not establish a reuse license or institutional endorsement. See [README.md](../README.md) and [FEATURES.md](FEATURES.md) for the current application behavior and deployment workflow.

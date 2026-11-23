@@ -30,7 +30,7 @@ test('learning features have complete distinct Greek translations', () => {
     assert.match(quizTranslations.el[key], /[Α-ω]/);
     assert.notEqual(quizTranslations.el[key], quizTranslations.en[key]);
   }
-  for (const key of ['sourceAttribution', 'sourceLink', 'sourceCitation', 'sourceIndependence', 'sourceStudy', 'dimensionHint'] as const) {
+  for (const key of ['sourceAttribution', 'sourceLink', 'sourceCitation', 'sourceIndependence'] as const) {
     assert.match(translations.el[key], /[Α-ω]/);
     assert.notEqual(translations.el[key], translations.en[key]);
   }

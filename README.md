@@ -11,7 +11,7 @@ A static React 19 + TypeScript 5.9 + Vite 8 application in **English, Greek and 
 
 Progress, GET2 current/previous results, the quiz's latest attempt and display preferences stay in localStorage on the participant’s device. There is no backend, account system, cookies, analytics, external fonts or runtime content fetching. External source links open other sites when followed.
 
-See [FEATURES.md](FEATURES.md) for detailed behavior and [security/STATIC_APP_SECURITY.md](security/STATIC_APP_SECURITY.md) for security boundaries and the historical audit.
+See [FEATURES.md](docs/FEATURES.md) for detailed behavior and [docs/STATIC_APP_SECURITY.md](docs/STATIC_APP_SECURITY.md) for security boundaries and the historical audit.
 
 ## Run
 
@@ -161,7 +161,7 @@ Each GET2 question box shows its permanent original question number at the botto
 
 ## Static app security
 
-See [the static app security notes](security/STATIC_APP_SECURITY.md) for the threat model, dated audit results and GitHub Pages header limitations. Production HTML uses a same-origin CSP and a referrer policy. Browser-delivered code and any future `VITE_*` values are public; do not put secrets in them.
+See [the static app security notes](docs/STATIC_APP_SECURITY.md) for the threat model, dated audit results and GitHub Pages header limitations. Production HTML uses a same-origin CSP and a referrer policy. Browser-delivered code and any future `VITE_*` values are public; do not put secrets in them.
 
 ## Source layout
 

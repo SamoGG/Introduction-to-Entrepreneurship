@@ -114,4 +114,4 @@ Playwright runs with one worker against `http://127.0.0.1:4173`, with a default 
 
 The included development container supplies Node 22, installs with `npm ci`, isolates `node_modules` in a Docker volume and forwards ports 5173/4173. GitHub Pages deployment runs on pushes to `main` or manual dispatch: locked install, logic tests, typechecked build, Chromium installation and browser tests gate upload of `dist/`. Build has `contents: read`; deployment has `pages: write` and `id-token: write`. Relative assets and state-based navigation support repository subdirectories without routing rewrites. No service worker is installed.
 
-See [README.md](README.md) for setup instructions and [the security notes](security/STATIC_APP_SECURITY.md) for browser policies, local-storage boundaries and the dated audit record.
+See [README.md](../README.md) for setup instructions and [the security notes](STATIC_APP_SECURITY.md) for browser policies, local-storage boundaries and the dated audit record.
