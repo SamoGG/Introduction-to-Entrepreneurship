@@ -418,6 +418,7 @@ test('requested widths, themes, large Greek text and 200 percent zoom remain usa
   await expectFits(page);
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   await page.getByRole('button', { name: 'Επανάληψη τεστ' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Έναρξη τεστ', exact: true }).click();
   await settleWrites(page);
   await page.setViewportSize({ width: 320, height: 700 });
   await page.getByRole('radio', { name: 'Συμφωνώ', exact: true }).click();
