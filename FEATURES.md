@@ -1,6 +1,8 @@
 # Application
 
-This application provides a GET2 self-reflection questionnaire and a separate educational quiz about the framework's attributes. It uses React 19, TypeScript and Vite, with component state for navigation rather than URL routing. `App.tsx` owns the GET2 session and preferences; `useQuizSession` owns the independent Attributes Quiz session. Scoring, validation, persistence and translation dictionaries are separate modules.
+Documentation reviewed against the repository source on **2026-11-23**.
+
+This application provides a GET2 self-reflection questionnaire and a separate educational quiz about the framework's attributes. It uses React 19, TypeScript 5.9 and Vite 8, with component state for navigation rather than URL routing. `App.tsx` owns the GET2 session and preferences; `useQuizSession` owns the independent Attributes Quiz session. Scoring, validation, persistence and translation dictionaries are separate modules.
 
 English, Greek and French are available throughout the interface through the EN / ΕΛ / FR header controls. A saved language takes priority over the GET2 session language and browser-language fallback (`el` → Greek, `fr` → French, otherwise English). Switching language preserves answers and question order. Dates and GET2 numeric summaries use locale-aware formatting.
 
@@ -10,7 +12,7 @@ Accessibility includes a skip link, semantic landmarks and headings, native butt
 
 Storage is local to the browser, with no application backend, accounts, cookies, analytics or tracking. Storage failures are reported and in-memory progress remains usable. The privacy dialog distinguishes application data handling from possible technical request logging by the hosting provider.
 
-GET/GET2 research is attributed to Sally Caird and Cliff Johnson in About and in the second footer column. The linked source is Sally Caird (2013), “General measure of Enterprising Tendency test”, at The Open University's Open Research Online: <https://oro.open.ac.uk/5393/>. The reference explicitly identifies this application as an independent implementation. It is separate from footer implementation credits to Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas and the disclosure that development used AI assistance.
+GET/GET2 research is attributed to Sally Caird and Cliff Johnson in About and in the second footer column. The linked source is Sally Caird (2013), “General measure of Enterprising Tendency test”, at The Open University's Open Research Online: <https://oro.open.ac.uk/5393/>. The reference explicitly identifies this application as an independent implementation. It is separate from footer implementation credits to Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas and Quentin Bonnehon and the disclosure that development used AI assistance.
 
 # GET2 Test
 
@@ -51,7 +53,7 @@ In instant-feedback mode, unsubmitted choices are temporary in-memory drafts and
 
 Mode is fixed for an unfinished attempt, with its checkbox shown disabled on the learning page. The selected instant-feedback mode is retained for retakes; returning to the learning page after completion allows choosing the next attempt's mode. Version 2 sessions persist `instantFeedback` alongside question order, option orders, answers, position, language and completion. Valid version 1 sessions migrate in memory to version 2 with feedback OFF and save in the new format on the next change. Corrupt or unsupported sessions are rejected safely.
 
-Quiz progress autosaves independently of GET2. Resume restores both orders and the mode. Keys 1–5 select displayed attribute options before submission; Enter submits a draft or advances after feedback. Navigation arrows respect the submission and feedback guard. Review provides a question navigator and remaining count; all 54 answers are required for submission. Retaking resets quiz answers and randomizes both orders without changing GET2 data.
+Quiz progress autosaves independently of GET2. Resume restores both orders and the mode. Keys 1–5 select displayed attribute options before submission; Enter advances in normal mode, or submits a draft and then advances after the guard in instant-feedback mode. Forward navigation requires an answer and, in feedback mode, submission and the 700 ms guard. Previous remains available after the first question. Review provides a question navigator and remaining count; all 54 answers are required for submission. Retaking resets quiz answers and randomizes both orders without changing GET2 data.
 
 # Results
 
@@ -107,6 +109,8 @@ Design constraints: no backend, accounts, analytics or tracking; no changes to e
 ## Development and deployment
 
 The project requires Node.js 22.18 or newer. `npm ci` installs locked dependencies; `npm run dev` starts Vite on localhost:5173. `npm test` runs Node's TypeScript logic suite; `npm run typecheck` checks TypeScript; `npm run build` typechecks and writes `dist/`. `npm run preview` serves that build on localhost:4173. `npm run test:e2e` builds and starts its own production preview for Playwright Chromium. Install Chromium first with `npx playwright install chromium` (or `--with-deps chromium` in Linux containers); an existing browser can be supplied with `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`.
+
+Playwright runs with one worker against `http://127.0.0.1:4173`, with a default 1280 × 960 viewport and traces retained on failure. Its preview uses a strict port and does not reuse an existing server, so port 4173 must be free before starting the suite. Generated builds, dependencies and browser-test reports are ignored by Git.
 
 The included development container supplies Node 22, installs with `npm ci`, isolates `node_modules` in a Docker volume and forwards ports 5173/4173. GitHub Pages deployment runs on pushes to `main` or manual dispatch: locked install, logic tests, typechecked build, Chromium installation and browser tests gate upload of `dist/`. Build has `contents: read`; deployment has `pages: write` and `id-token: write`. Relative assets and state-based navigation support repository subdirectories without routing rewrites. No service worker is installed.
 

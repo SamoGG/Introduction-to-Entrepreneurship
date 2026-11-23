@@ -1,8 +1,10 @@
 # Entrepreneurial Tendency Test
 
-Made by **Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas**.
+Made by **Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas and Quentin Bonnehon**.
 
-A static React 19 + TypeScript + Vite application in **English, Greek and French**, with two independent activities:
+Documentation reviewed against the repository source on **2026-11-23**.
+
+A static React 19 + TypeScript 5.9 + Vite 8 application in **English, Greek and French**, with two independent activities:
 
 - **GET2 Test:** a 54-statement self-reflection questionnaire, with optional Agree/Disagree-only answers, review, scoring, a dimension profile and comparison with the previous completed attempt.
 - **Attributes Quiz:** learn the five GET2 attributes, then identify the attribute behind each statement, with optional instant feedback and a separate understanding score.
@@ -44,10 +46,25 @@ After changing container configuration, use **Dev Containers: Rebuild Container*
 
 Use Node.js 22.18 or newer.
 
+Node's built-in TypeScript support runs the logic tests directly; no separate test transpiler is configured. Install dependencies with `npm ci` to use the versions in `package-lock.json`.
+
 ```sh
 npm ci
 npm run dev
 ```
+
+### Available commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server at `http://127.0.0.1:5173` |
+| `npm run typecheck` | Check TypeScript without generating output |
+| `npm test` | Run Node logic tests in `tests/*.test.ts` |
+| `npm run build` | Check TypeScript and build the static site into `dist/` |
+| `npm run preview` | Serve the existing production build at `http://127.0.0.1:4173` |
+| `npm run test:e2e` | Build and run Playwright Chromium tests in `tests/*.spec.ts` against a dedicated production preview |
+
+The development and preview servers bind to localhost. Stop a manually started preview before running browser tests: Playwright starts its own server on port 4173 and does not reuse an existing server.
 
 ## Build and deploy
 
@@ -113,7 +130,7 @@ GET2 keyboard controls: 1/2/3 select Agree/Disagree/unknown (1/2 only in binary 
 
 ## Accessibility and privacy controls
 
-The shared footer on every application screen credits Samuel Gabriel Galgóci, Juraj Budinský and Justinas Jankauskas, with localized wording in English, Greek and French, plus an AI-assistance disclosure and GET/GET2 source attribution. It also offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language uses the saved preference, then the GET2 session language, then the browser locale (`el` → Greek, `fr` → French, otherwise English). Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
+The shared footer on every application screen credits Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas and Quentin Bonnehon, with localized wording in English, Greek and French, plus an AI-assistance disclosure and GET/GET2 source attribution. It also offers appearance/accessibility preferences, Privacy, About this test, and confirmed deletion of saved test data. Theme defaults to the system preference; language uses the saved preference, then the GET2 session language, then the browser locale (`el` → Greek, `fr` → French, otherwise English). Larger text, high contrast, and reduced motion are saved locally. System reduced motion is always respected.
 
 Delete Saved Data is available only in the footer and removes the active questionnaire session, current/previous results, and attributes quiz progress/results while preserving language and display preferences. Results use Retake Test as the repeat action so students can immediately start another randomized attempt. A reusable native dialog handles Escape, focus containment, and focus restoration. Polite live regions announce selection/saving, quiz feedback and completed actions.
 

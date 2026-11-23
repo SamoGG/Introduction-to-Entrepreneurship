@@ -25,7 +25,7 @@ export const fr: Copy = {
   noTestResults: 'Terminez le test GET2 pour voir vos résultats ici.', noQuizResults: 'Terminez le quiz des caractéristiques pour voir vos résultats ici.',
   activities: 'Activités', attributeMatch: 'Quiz des caractéristiques', wpTitle: 'Associer les questions aux caractéristiques', wpDescription: 'Associez les affirmations GET2 aux cinq caractéristiques entrepreneuriales.',
   originalQuestion: 'Question originale', updatedElsewhere: 'Les données du test ont changé dans un autre onglet. La dernière progression enregistrée a été chargée.',
-  madeBy: 'Créé par Samuel Gabriel Galgóci, Juraj Budinský et Justinas Jankauskas.',
+  madeBy: 'Créé par Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas et Quentin Bonnehon.',
   preferences: 'Apparence et accessibilité', theme: 'Thème', system: 'Système', light: 'Clair', dark: 'Sombre', largerText: 'Texte agrandi', highContrast: 'Contraste élevé', reduceMotion: 'Réduire les animations', close: 'Fermer', cancelAction: 'Annuler',
   answerSaved: 'Réponse enregistrée', answerUpdated: 'Réponse mise à jour', answerNotSaved: 'Réponse sélectionnée ; enregistrement indisponible.', selectedLabel: 'sélectionné', complete: 'terminé', answeredLabel: 'Réponses données', resultsCalculated: 'Résultats calculés',
   allFilter: 'Toutes', unknownFilter: 'Je ne sais pas', unansweredFilter: 'Sans réponse', reviewFilters: 'Filtrer les questions', emptyFilter: 'Aucune question ne correspond à ce filtre.', questionsShown: 'questions affichées',

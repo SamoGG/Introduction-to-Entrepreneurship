@@ -1,6 +1,8 @@
 # Static app security notes and audit record
 
-The architecture and controls below were checked against repository source on **2026-11-18** for documentation maintenance. The runtime/dependency/deployment observations in the historical verification section belong to the **2026-10-01** audit against applicable categories in [benavlabs/vibe-check](https://github.com/benavlabs/vibe-check); they are not a fresh security audit or a statement about today's deployed site. That audit covered the working tree at the time, seven locally available commits, the production build and an HTTPS response from the deployed site. This is a scoped record, not a guarantee of security.
+The architecture and controls below were checked against repository source on **2026-11-23** for documentation maintenance. The runtime/dependency/deployment observations in the historical verification section belong to the **2026-10-01** audit against applicable categories in [benavlabs/vibe-check](https://github.com/benavlabs/vibe-check); they are not a fresh security audit or a statement about today's deployed site. That audit covered the working tree at the time, seven locally available commits, the production build and an HTTPS response from the deployed site. This is a scoped record, not a guarantee of security.
+
+Application authors are Samuel Gabriel Galgóci, Juraj Budinský, Justinas Jankauskas and Quentin Bonnehon, credited in the English, Greek and French footer. These implementation credits are separate from the GET/GET2 research attribution and do not identify a verified site operator/privacy contact.
 
 ## Architecture and data
 
@@ -55,7 +57,7 @@ npm run test:e2e
 
 Linux containers may need `npx playwright install --with-deps chromium`. The browser suite includes same-origin production loading, CSP behavior, corrupt/XSS storage payloads, deletion of both activities, feedback submission, multi-tab persistence, French binary-mode resume, and existing English/Greek flows. Test coverage does not establish that every language and interaction combination has been audited.
 
-For the 2026-11-18 documentation update, source, configuration and test definitions were reviewed. Runtime tests and a fresh dependency audit were not run: this host has no Node/npm executable and its Docker daemon is not running. The historical vulnerability count, bundle sizes, passing-test counts and deployed response above must not be treated as current verification. Rerun checks in a configured environment to establish current results.
+For the 2026-11-23 documentation update, source, configuration and test definitions were reviewed. Runtime tests and a fresh dependency audit were not run: this host has no Node/npm executable and its Docker daemon is not running. The historical vulnerability count, bundle sizes, passing-test counts and deployed response above must not be treated as current verification. Rerun checks in a configured environment to establish current results.
 
 ## Hosting limitations
 
