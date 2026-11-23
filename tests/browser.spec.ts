@@ -171,6 +171,7 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
   await settleWrites(page);
   await expect(page.locator('.overall-score')).toHaveText('30/ 54');
   await page.getByRole('button', { name: 'Take Test Again' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Start Test', exact: true }).click();
   await settleWrites(page);
   const retake = await readSession(page);
   expect(retake.questionOrder).not.toEqual(first.questionOrder);
@@ -197,6 +198,7 @@ test('complete questionnaire, coverage-weighted results, copy, print, retake and
   await expect(page.locator('.comparison tbody tr').first()).toContainText('+24');
   expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual(['get2-active-session', 'get2-current-result', 'get2-language', 'get2-previous-result']);
   await page.getByRole('button', { name: 'Take Test Again' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Start Test', exact: true }).click();
   await settleWrites(page);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).overall.finalScore, previousKey)).toBe(54);
   expect(await page.evaluate(key => localStorage.getItem(key), currentKey)).toBeNull();
@@ -383,6 +385,7 @@ test('profile, white printing in dark mode, and Retake preserves preferences', a
   await page.emulateMedia({ media: 'screen' });
   await expect(page.getByRole('button', { name: 'Delete Saved Data' })).toHaveCount(1);
   await page.getByRole('button', { name: 'Take Test Again', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Start Test', exact: true }).click();
   await settleWrites(page);
   expect(await page.evaluate(() => localStorage.getItem('get2-current-result'))).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('get2-previous-result'))).not.toBeNull();
@@ -570,6 +573,7 @@ test('old prorated results cannot enter retake comparison; answers and preferenc
   await page.getByRole('button', { name: 'English' }).click();
   await settleWrites(page);
   await page.getByRole('button', { name: 'Take Test Again' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Start Test', exact: true }).click();
   await settleWrites(page);
   const previous = await page.evaluate(() => JSON.parse(localStorage.getItem('get2-previous-result')!));
   expect(previous.version).toBe(4);

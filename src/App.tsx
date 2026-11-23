@@ -18,7 +18,7 @@ import { SourceReference } from './components/SourceReference.tsx';
 import { Results } from './components/Results.tsx';
 import { FlagIcon, Icon } from './components/Icon.tsx';
 
-type Panel = 'restart' | 'delete' | 'privacy' | 'about' | 'preferences';
+type Panel = 'restart' | 'retake' | 'delete' | 'privacy' | 'about' | 'preferences';
 type Screen = 'welcome' | 'question' | 'review' | 'results' | 'wp' | 'quiz-results';
 
 
@@ -26,6 +26,7 @@ export default function App() {
   const [initial] = useState(loadState);
   const snapshot = useRef(testDataSnapshot());
   const [binaryAnswers, setBinaryAnswers] = useState(initial.session?.binaryAnswers ?? false);
+  const [newBinaryAnswers, setNewBinaryAnswers] = useState(binaryAnswers);
   const [modeHelpDismissed, setModeHelpDismissed] = useState(false);
   const [session, setSession] = useState(initial.session);
   const [current, setCurrent] = useState(initial.current);
@@ -108,7 +109,7 @@ export default function App() {
     });
   }
 
-  function startNew() {
+  function startNew(mode = binaryAnswers) {
     transact(() => {
       // Move the last completed result only once. Restarting an unfinished
       // retake must not erase its immediately previous completed result.
@@ -120,18 +121,21 @@ export default function App() {
       }
       let order = shuffleQuestions();
       if (session && order.every((id, index) => id === session.questionOrder[index])) order = order.reverse();
-      updateSession({ version: 2, questionOrder: order, answers: {}, currentIndex: 0, language, completed: false, binaryAnswers });
+      setBinaryAnswers(mode);
+      updateSession({ version: 2, questionOrder: order, answers: {}, currentIndex: 0, language, completed: false, binaryAnswers: mode });
       persist(keys.language, language);
       setFromReview(false);
       setReviewFilter('all');
       setAnswerStatus(null);
+      setPanel(null);
       setScreen('question');
     });
   }
 
   function requestNew() {
-    if (session && !session.completed) setPanel('restart');
-    else startNew();
+    setDeleteError(false);
+    setNewBinaryAnswers(binaryAnswers);
+    setPanel(session && !session.completed ? 'restart' : 'retake');
   }
 
   function choose(answer: Answer) {
@@ -233,7 +237,7 @@ export default function App() {
   const visibleQuestions = session ? filterQuestions(session.questionOrder, session.answers, reviewFilter) : [];
   const hasTestData = Boolean(session || current || previous || quiz.session);
   const openPanel = (next: Panel) => { setDeleteError(false); setPanel(next); };
-  const panelTitle = panel === 'restart' ? t.restartTitle : panel === 'delete' ? t.deleteTitle : panel === 'privacy' ? t.privacyTitle : panel === 'about' ? t.aboutTitle : t.preferences;
+  const panelTitle = panel === 'restart' ? t.restartTitle : panel === 'retake' ? t.retake : panel === 'delete' ? t.deleteTitle : panel === 'privacy' ? t.privacyTitle : panel === 'about' ? t.aboutTitle : t.preferences;
 
   return <>
     <div className="sr-only" role="status" aria-live="polite" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></div>
@@ -302,7 +306,7 @@ export default function App() {
             <button className="button primary start-button" onClick={() => { setFromReview(false); setScreen('question'); }}>{t.continue}<Icon name="arrow-right" /></button>
             <button className="text-button new-test" onClick={requestNew}>{t.newTest}</button>
           </div> : <>
-            <button className="button primary start-button" onClick={current ? () => setScreen('results') : startNew}>{current ? t.viewResults : t.start}<Icon name="arrow-right" /></button>
+            <button className="button primary start-button" onClick={current ? () => setScreen('results') : () => startNew()}>{current ? t.viewResults : t.start}<Icon name="arrow-right" /></button>
             {current && <button className="button secondary completed-retake" onClick={requestNew}>{t.retake}</button>}
           </>}
           <p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p>
@@ -353,7 +357,7 @@ export default function App() {
         <div className="session-footer"><p className="save-note"><span className="save-dot" aria-hidden="true" />{storageError ? t.storageError : t.saved}</p><button className="text-button subdued" onClick={requestNew}>{t.restart}</button></div>
       </>}
 
-      {screen === 'results' && current && <Results result={current} previous={previous} language={language} onRetake={startNew} onAnnounce={announce} />}
+      {screen === 'results' && current && <Results result={current} previous={previous} language={language} onRetake={requestNew} onAnnounce={announce} />}
     </main>
 
     <footer className="site-footer no-print">
@@ -381,11 +385,15 @@ export default function App() {
       </div> : panel === 'privacy' ? <div className="info-panel"><p>{t.privacyBody}</p><p>{t.privacyStorage}</p><p>{t.privacyControl}</p><p>{t.privacyExtra}</p><p>{t.privacyHosting}</p><p className="small-note">{t.privacyUpdated}: <time dateTime="2026-10-01">{t.privacyDate}</time></p></div>
         : panel === 'about' ? <div className="info-panel"><p>{t.aboutBody}</p><p>{t.aboutScoring}</p><p>{t.aboutQuiz}</p><p>{t.disclaimer}</p><SourceReference language={language} /></div>
         : <>
-          <p>{panel === 'restart' ? t.restartMessage : t.deleteMessage}</p>
+          {panel !== 'retake' && <p>{panel === 'restart' ? t.restartMessage : t.deleteMessage}</p>}
+          {(panel === 'restart' || panel === 'retake') && <>
+            <label className="preference-option"><input type="checkbox" checked={newBinaryAnswers} aria-describedby="new-test-mode-help" onChange={event => setNewBinaryAnswers(event.target.checked)} />{t.binaryAnswers}</label>
+            <p id="new-test-mode-help" className="small-note">{t.binaryAnswersHelp}</p>
+          </>}
           {deleteError && <p role="alert" className="delete-error">{t.deleteFailed}</p>}
           <div className="dialog-actions">
             <button className="button secondary" onClick={() => setPanel(null)}>{t.cancelAction}</button>
-            <button className="button destructive" onClick={() => { if (panel === 'restart') { setPanel(null); startNew(); } else clearData(); }}>{panel === 'restart' ? t.confirmRestart : t.deleteConfirm}</button>
+            <button className={`button ${panel === 'retake' ? 'primary' : 'destructive'}`} onClick={() => { if (panel === 'restart' || panel === 'retake') startNew(newBinaryAnswers); else clearData(); }}>{panel === 'restart' ? t.confirmRestart : panel === 'retake' ? t.start : t.deleteConfirm}</button>
           </div>
         </>}
     </Modal>}
